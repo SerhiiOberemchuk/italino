@@ -1,0 +1,42 @@
+import Image from "next/image";
+import Link from "next/link";
+import { homeImages } from "@/lib/mock/home";
+import styles from "./promo-split.module.css";
+
+export function PromoSplit() {
+  return (
+    <section className={`wrap ${styles.section}`} aria-label="Sale та пропозиція для бізнесу">
+      <div className={styles.grid}>
+        <Link href="/sale" className={`${styles.tile} ${styles.tileSale}`}>
+          <div className={styles.copy}>
+            <p className={`eyebrow ${styles.eyebrow}`}>Кінець серій та останні партії</p>
+            <h3>Sale до −50%</h3>
+            <p className={styles.text}>
+              Речі, які постачальник знімає з каталогу, за спеціальною ціною.
+              Поповнюємо перед кожною поставкою.
+            </p>
+            <span className={`btn btn--ghost ${styles.btn}`}>Дивитися sale</span>
+          </div>
+          <div className={styles.img} aria-hidden="true">
+            <Image src={homeImages.promoSale} alt="" fill sizes="280px" />
+          </div>
+        </Link>
+
+        <Link href="/business" className={`${styles.tile} ${styles.tileBusiness}`}>
+          <div className={styles.copy}>
+            <p className={`eyebrow ${styles.eyebrow}`}>Для бізнесу</p>
+            <h3>Мерч і подарунки з логотипом</h3>
+            <p className={styles.text}>
+              Шопери, пляшки, ручки та блокноти для команди й клієнтів. Оптові
+              ціни від 50 шт., нанесення логотипа — за запитом.
+            </p>
+            <span className={`btn btn--ghost ${styles.btn}`}>Отримати пропозицію</span>
+          </div>
+          <div className={styles.img} aria-hidden="true">
+            <Image src={homeImages.promoBusiness} alt="" fill sizes="280px" />
+          </div>
+        </Link>
+      </div>
+    </section>
+  );
+}

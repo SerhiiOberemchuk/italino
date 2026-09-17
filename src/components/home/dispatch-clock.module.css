@@ -1,0 +1,57 @@
+.countdown {
+  margin-top: 28px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper-55);
+}
+
+.cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.cell {
+  min-width: 68px;
+  padding: 12px 10px;
+  border: 1px solid rgb(255 247 238 / 0.12);
+  border-radius: 16px;
+  background: rgb(255 247 238 / 0.08);
+  text-align: center;
+}
+
+.cell strong {
+  display: block;
+  font-weight: 600;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper-55);
+}
+
+@media (min-width: 640px) {
+  .cell {
+    min-width: 84px;
+    padding: 14px 12px;
+  }
+
+  .cell strong {
+    font-size: 32px;
+  }
+}

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Локальний шаблон env (без секретів) має бути в репозиторії
+!.env.example

@@ -1,0 +1,84 @@
+.section {
+  padding-block: 64px;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-block: 96px;
+  }
+}
+
+.panel {
+  display: grid;
+  gap: 32px;
+  padding: 32px;
+  border-radius: var(--radius-2xl);
+  background: var(--lime);
+  color: var(--ink);
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: 56px;
+    padding: 56px;
+  }
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.panel > div > p {
+  margin-top: 12px;
+  max-width: 460px;
+  line-height: 1.6;
+  color: var(--ink-70);
+}
+
+.form {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  box-shadow: inset 0 0 0 1px var(--ink-10);
+  transition: box-shadow 0.2s var(--ease);
+}
+
+.form:focus-within {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 16px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 15px;
+}
+
+.form input::placeholder {
+  color: var(--ink-50);
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--ink-50);
+}

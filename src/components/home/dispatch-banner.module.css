@@ -1,0 +1,149 @@
+.section {
+  padding-bottom: 64px;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-bottom: 96px;
+  }
+}
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 24px;
+  border-radius: var(--radius-2xl);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+@media (min-width: 640px) {
+  .panel {
+    padding: 48px 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    padding: 64px 56px;
+  }
+}
+
+.glowTomato,
+.glowLime {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+.glowTomato {
+  right: -12%;
+  top: -35%;
+  width: 480px;
+  height: 480px;
+  background: rgb(255 75 43 / 0.45);
+}
+
+.glowLime {
+  left: -10%;
+  bottom: -40%;
+  width: 360px;
+  height: 360px;
+  background: rgb(216 255 62 / 0.22);
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  gap: 40px;
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: center;
+    gap: 64px;
+  }
+}
+
+.eyebrow {
+  color: var(--lime);
+}
+
+.date {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.date::first-letter {
+  text-transform: uppercase;
+}
+
+.note {
+  margin-top: 16px;
+  max-width: 520px;
+  line-height: 1.6;
+  color: var(--paper-70);
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.timeline {
+  display: grid;
+  gap: 24px;
+  padding-left: 28px;
+  border-left: 1px solid var(--paper-20);
+}
+
+.tItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tItem::before {
+  content: "";
+  position: absolute;
+  left: -33px;
+  top: 5px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 247 238 / 0.35);
+}
+
+.tItemHot::before {
+  background: var(--lime);
+  box-shadow: 0 0 0 5px rgb(216 255 62 / 0.2);
+}
+
+.tWhen {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lime);
+}
+
+.tWhat {
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tDesc {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgb(255 247 238 / 0.6);
+}

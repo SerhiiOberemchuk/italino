@@ -1,0 +1,177 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Packshot на білому тлі: біла плитка, фото вписане з відступом */
+.media {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid var(--ink-10);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  transition: border-color 0.25s var(--ease);
+}
+
+.card:hover .media {
+  border-color: rgb(20 17 15 / 0.25);
+}
+
+.img {
+  box-sizing: border-box;
+  padding: 9%;
+  object-fit: contain;
+  transition: transform 0.6s var(--ease);
+}
+
+.card:hover .img {
+  transform: scale(1.05);
+}
+
+.badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 1;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badgeNew {
+  background: var(--lime);
+  color: var(--ink);
+}
+
+.badgeSale {
+  background: var(--tomato);
+  color: var(--white);
+}
+
+.wish {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ink-10);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.92);
+  color: var(--ink);
+  transition:
+    background-color 0.2s var(--ease),
+    color 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+
+.wish svg {
+  width: 18px;
+  height: 18px;
+}
+
+.wish:hover {
+  background: var(--tomato);
+  border-color: var(--tomato);
+  color: var(--white);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 4px 0;
+}
+
+.brand {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.name a:hover {
+  color: var(--tomato);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.price strong {
+  font-weight: 600;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.price s {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-50);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.swatches li {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px rgb(20 17 15 / 0.18);
+}
+
+.swatches .more {
+  width: auto;
+  height: auto;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--sand);
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-70);
+}
+
+.sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sizes li {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--sand);
+  font-size: 11px;
+  font-weight: 600;
+}

@@ -1,0 +1,82 @@
+.bar {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 40px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 640px) {
+  .inner {
+    font-size: 13px;
+  }
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--lime);
+  color: var(--ink);
+}
+
+.icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date {
+  color: var(--lime);
+}
+
+/* Довга версія тексту — лише від планшета; коротка — на телефоні. */
+.long {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .long {
+    display: inline;
+  }
+
+  .short {
+    display: none;
+  }
+}
+
+.link {
+  display: none;
+  flex: none;
+  text-decoration: underline;
+  text-decoration-color: var(--lime);
+  text-underline-offset: 4px;
+  transition: color 0.2s var(--ease);
+}
+
+.link:hover {
+  color: var(--lime);
+}
+
+@media (min-width: 768px) {
+  .link {
+    display: inline;
+  }
+}

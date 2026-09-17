@@ -1,0 +1,258 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.blobLime,
+.blobTomato {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.blobLime {
+  left: -160px;
+  top: 60px;
+  width: 420px;
+  height: 420px;
+  background: rgb(216 255 62 / 0.6);
+}
+
+.blobTomato {
+  right: -120px;
+  top: -140px;
+  width: 380px;
+  height: 380px;
+  background: rgb(255 75 43 / 0.22);
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  gap: 40px;
+  padding-block: 36px 52px;
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: center;
+    gap: 56px;
+    padding-block: 64px 88px;
+  }
+
+  .copy {
+    grid-column: span 6;
+  }
+
+  .showcase {
+    grid-column: span 6;
+  }
+}
+
+@media (min-width: 1280px) {
+  .copy {
+    grid-column: span 5;
+  }
+
+  .showcase {
+    grid-column: span 7;
+  }
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--lime);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pill svg {
+  width: 15px;
+  height: 15px;
+}
+
+.title {
+  margin-top: 26px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(34px, 4.6vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.title em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--tomato);
+}
+
+.lead {
+  margin-top: 22px;
+  max-width: 520px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--ink-70);
+}
+
+@media (min-width: 640px) {
+  .lead {
+    font-size: 17px;
+  }
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ink-10);
+}
+
+.stats dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+}
+
+.stats dd {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 640px) {
+  .stats dd {
+    font-size: 17px;
+  }
+}
+
+/* ---- Вітрина: чотири packshot-плитки, по одній на напрям асортименту ---- */
+
+.showcase {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .showcase {
+    gap: 16px;
+  }
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-xl);
+  transition: transform 0.25s var(--ease);
+}
+
+.tile:nth-child(2),
+.tile:nth-child(3) {
+  transform: translateY(14px);
+}
+
+@media (min-width: 640px) {
+  .tile:nth-child(2),
+  .tile:nth-child(3) {
+    transform: translateY(24px);
+  }
+
+  .tile:nth-child(2):hover,
+  .tile:nth-child(3):hover {
+    transform: translateY(18px);
+  }
+}
+
+.tile:hover {
+  transform: translateY(-6px);
+}
+
+.tintLime {
+  background: var(--tint-lime);
+}
+
+.tintSky {
+  background: var(--tint-sky);
+}
+
+.tintTomato {
+  background: var(--tint-tomato);
+}
+
+.tintMint {
+  background: var(--tint-mint);
+}
+
+.tileLink {
+  display: block;
+  height: 100%;
+}
+
+/* Packshot знято на білому тлі: multiply прибирає тло на кольоровій плитці */
+.tileImg {
+  position: absolute;
+  inset: 8% 10% 26%;
+}
+
+.tileImg img {
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 0.6s var(--ease);
+}
+
+.tile:hover .tileImg img {
+  transform: scale(1.06);
+}
+
+.tileLabel {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-width: calc(100% - 24px);
+  padding: 9px 14px;
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.tileLabel small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ink-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
