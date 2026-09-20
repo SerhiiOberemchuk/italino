@@ -17,6 +17,17 @@ type Props = {
 
 type CheckoutResult = { orderId?: string; paymentUrl?: string; error?: string };
 
+/**
+ * CRM віддає англійські підписи вбудованих методів ("Self pickup", "Nova
+ * Poshta") — на українській вітрині їх показувати не можна. Незнайомий ключ
+ * лишається з підписом CRM, щоб новий перевізник не зник із форми.
+ */
+const SHIPPING_LABELS: Record<string, string> = {
+  pickup: "Самовивіз",
+  nova_poshta: "Нова Пошта",
+  ukrposhta: "Укрпошта",
+};
+
 export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
   const router = useRouter();
   const hydrated = useCartStore((state) => state.hydrated);
@@ -108,7 +119,7 @@ export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
               <label className={styles.radio} key={method.key}>
                 <input type="radio" name="shipping" value={method.key} defaultChecked={index === 0} required />
                 <span>
-                  <strong>{method.label}</strong><br />
+                  <strong>{SHIPPING_LABELS[method.key] ?? method.label}</strong><br />
                   <small>
                     {method.key === "pickup"
                       ? "Самовивіз; деталі узгодить менеджер"

@@ -1,7 +1,8 @@
 import "server-only";
 
 import { crmGet, crmPost, CrmError } from "./client";
-import { HUTKO_PAYMENT_KEY, storefrontUrl } from "@/lib/store";
+import { storefrontUrl } from "@/lib/site-url";
+import { HUTKO_PAYMENT_KEY } from "@/lib/store";
 import type { CrmOrderStatus } from "./types";
 
 const STORE_ORDER_ID = /^italino-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

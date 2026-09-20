@@ -4,7 +4,8 @@ import { crmPost, CrmError } from "@/lib/crm/client";
 import type { CrmOrderIntakeResponse } from "@/lib/crm/types";
 import { allowRequest, clientKey } from "@/lib/rate-limit";
 import { formatDispatchDate, nextDispatch } from "@/lib/shipping/schedule";
-import { HUTKO_PAYMENT_KEY, storefrontUrl } from "@/lib/store";
+import { storefrontUrl } from "@/lib/site-url";
+import { HUTKO_PAYMENT_KEY } from "@/lib/store";
 
 type Input = {
   customer?: Record<string, unknown>;

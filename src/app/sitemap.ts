@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getStoreProducts } from "@/lib/crm/catalog";
-import { publicSiteUrl } from "@/lib/store";
+import { publicSiteUrl } from "@/lib/site-url";
 
 /** Ті самі ключі, що приймає `/catalog/[category]`. */
 const CATEGORIES = ["bags", "drinkware", "clothing", "hats", "office", "tech", "home", "travel"];

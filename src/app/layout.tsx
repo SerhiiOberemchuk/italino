@@ -5,7 +5,8 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { StoreHydrator } from "@/components/store-hydrator";
-import { publicSiteUrl, STORE } from "@/lib/store";
+import { publicSiteUrl } from "@/lib/site-url";
+import { STORE } from "@/lib/store";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
 const display = Playfair_Display({
