@@ -26,15 +26,15 @@ export function Hero() {
             Сумки, пляшки, одяг і подарунки — <em>на щодень</em>.
           </h1>
           <p className={styles.lead}>
-            Каталог італійського постачальника Sipec: рюкзаки й шопери,
-            термопляшки та кухлі, базовий одяг, кепки, канцелярія й техніка.
-            Понад 450 позицій — з переробленої або органічної сировини.
+            Italino пропонує рюкзаки й шопери, термопляшки та кухлі, базовий одяг,
+            кепки, канцелярію й техніку. У колекції — моделі з перероблених та
+            органічних матеріалів для роботи, подорожей і повсякденного життя.
           </p>
           <div className={styles.ctas}>
             <Link href="/catalog" className="btn btn--primary">
               Дивитися каталог <ArrowRightIcon />
             </Link>
-            <Link href="/business" className="btn btn--ghost">
+            <Link href="/contacts" className="btn btn--ghost">
               Для бізнесу
             </Link>
           </div>

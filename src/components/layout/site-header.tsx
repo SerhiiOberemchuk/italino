@@ -4,7 +4,6 @@ import {
   HeartIcon,
   MenuIcon,
   SearchIcon,
-  UserIcon,
 } from "@/components/ui/icons";
 import { CartLink } from "@/components/cart/cart-link";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -15,22 +14,22 @@ const NAV = [
   { label: "Сумки та рюкзаки", href: "/catalog/bags" },
   { label: "Пляшки та кухлі", href: "/catalog/drinkware" },
   { label: "Одяг", href: "/catalog/clothing" },
-  { label: "Бренди", href: "/brands" },
-  { label: "Sale", href: "/sale", accent: true },
-  { label: "Для бізнесу", href: "/business" },
+  { label: "Бренди", href: "/catalog#catalog-filters" },
+  { label: "Sale", href: "/catalog?discounted=true", accent: true },
+  { label: "Для бізнесу", href: "/contacts" },
 ];
 
 export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={`wrap ${styles.inner}`}>
-        <button
-          type="button"
+        <Link
+          href="/catalog"
           className={`${styles.iconBtn} ${styles.menuBtn}`}
-          aria-label="Відкрити меню"
+          aria-label="Відкрити каталог"
         >
           <MenuIcon />
-        </button>
+        </Link>
 
         <Link href="/" className={styles.logo} aria-label="Italino — на головну">
           <BrandLogo />
@@ -72,10 +71,7 @@ export function SiteHeader() {
           >
             <SearchIcon />
           </Link>
-          <Link href="/account" className={styles.iconBtn} aria-label="Кабінет">
-            <UserIcon />
-          </Link>
-          <Link href="/favorites" className={styles.iconBtn} aria-label="Обране">
+          <Link href="/favorites" className={styles.iconBtn} aria-label="Улюблені товари">
             <HeartIcon />
           </Link>
           <CartLink />

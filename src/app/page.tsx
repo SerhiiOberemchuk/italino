@@ -22,7 +22,7 @@ export default function HomePage() {
           <ProductRail
             eyebrow="Щойно в каталозі"
             title="Нові надходження"
-            href="/catalog?sort=new"
+            href="/catalog?sort=newest"
             linkLabel="Усі новинки"
             products={[]}
             emptyMessage="Завантажуємо товари…"

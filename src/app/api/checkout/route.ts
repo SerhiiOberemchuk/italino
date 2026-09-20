@@ -35,13 +35,13 @@ export async function POST(request: Request) {
     const carrier = text(input.delivery?.carrier, 120); const payment = text(input.payment, 50);
     const hutko = capabilities.payments.find((method) => method.key === HUTKO_PAYMENT_KEY && method.paymentLink);
     if (!capabilities.shipping.some((method) => method.key === carrier)) return Response.json({ error: "Обраний спосіб доставки недоступний." }, { status: 400 });
-    if (payment !== HUTKO_PAYMENT_KEY || !hutko) return Response.json({ error: "Онлайн-оплата Hutko ще не активована. Спробуйте пізніше." }, { status: 503 });
+    if (payment !== HUTKO_PAYMENT_KEY || !hutko) return Response.json({ error: "Онлайн-оплата тимчасово недоступна. Спробуйте пізніше." }, { status: 503 });
     const externalId = `italino-${randomUUID()}`;
-    const order = await crmPost<CrmOrderIntakeResponse>("orders", { externalId, currency: "UAH", items: lines, customer: { firstName, lastName, phone, email, shippingAddress: { country: "UA", city, line1: text(input.delivery?.branch, 255) || (carrier === "pickup" ? "Самовивіз" : "Уточнити з покупцем") } }, delivery: { carrier, method: carrier === "pickup" ? "pickup" : "branch", branch: text(input.delivery?.branch, 200) || undefined, cod: false, comment: text(input.delivery?.comment, 1000) || undefined }, notes: `Замовлення сайту Italino. Найближча відправка: ${formatDispatchDate(nextDispatch())}. Оплата: онлайн через Hutko.` });
+    const order = await crmPost<CrmOrderIntakeResponse>("orders", { externalId, currency: "UAH", items: lines, customer: { firstName, lastName, phone, email, shippingAddress: { country: "UA", city, line1: text(input.delivery?.branch, 255) || (carrier === "pickup" ? "Самовивіз" : "Уточнити з покупцем") } }, delivery: { carrier, method: carrier === "pickup" ? "pickup" : "branch", branch: text(input.delivery?.branch, 200) || undefined, cod: false, comment: text(input.delivery?.comment, 1000) || undefined }, notes: `Замовлення сайту Italino. Найближча відправка: ${formatDispatchDate(nextDispatch())}. Онлайн-оплата.` });
     let paymentUrl: string | undefined;
     let paymentPending = false;
     try {
-      const returnUrl = storefrontUrl(`/checkout/success/${encodeURIComponent(externalId)}`);
+      const returnUrl = storefrontUrl(`/order/${encodeURIComponent(externalId)}`);
       const link = await crmPost<{ data: { checkoutUrl: string } }>(`orders/${encodeURIComponent(externalId)}/payment-link`, { provider: HUTKO_PAYMENT_KEY, ttl: "24h", ...(returnUrl ? { returnUrl } : {}) });
       paymentUrl = link.data.checkoutUrl;
     } catch (error) {

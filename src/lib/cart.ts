@@ -11,6 +11,8 @@ export type CartItem = {
   color: string | null;
   size: string | null;
   quantity: number;
+  href?: string;
+  maxQuantity?: number | null;
 };
 
 export function readCart(): CartItem[] {
@@ -35,7 +37,12 @@ export function writeCart(items: CartItem[]) {
 export function addCartItem(item: CartItem) {
   const cart = readCart();
   const existing = cart.find((line) => line.sku === item.sku);
-  if (existing) existing.quantity = Math.min(99, existing.quantity + item.quantity);
+  const limit = item.maxQuantity ?? 99;
+  if (existing) {
+    existing.quantity = Math.min(limit, existing.quantity + item.quantity);
+    existing.href = item.href;
+    existing.maxQuantity = item.maxQuantity;
+  }
   else cart.push(item);
   writeCart(cart);
 }

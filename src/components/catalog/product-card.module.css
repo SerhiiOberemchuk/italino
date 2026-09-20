@@ -84,6 +84,14 @@
   color: var(--white);
 }
 
+.wishActive {
+  background: var(--tomato);
+  border-color: var(--tomato);
+  color: var(--white);
+}
+
+.wishActive svg { fill: currentColor; }
+
 .body {
   display: flex;
   flex-direction: column;

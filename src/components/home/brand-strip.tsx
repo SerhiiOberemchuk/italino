@@ -15,12 +15,12 @@ export function BrandStrip({ brands }: { brands: HomeBrand[] }) {
               Три бренди в каталозі
             </h2>
             <p className="section-lead">
-              Власні торгові марки нашого постачальника. Кожна має лінію
-              Sustainable Living: перероблена або органічна сировина із
-              сертифікатами GRS та OceanCycle.
+              Бренди, представлені в асортименті Italino. Їхні колекції Sustainable
+              Living поєднують перероблені й органічні матеріали та сертифікації
+              GRS і OceanCycle.
             </p>
           </div>
-          <Link href="/brands" className="btn btn--ghost">
+          <Link href="/catalog#catalog-filters" className="btn btn--ghost">
             Усі бренди
           </Link>
         </div>

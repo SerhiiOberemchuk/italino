@@ -1,0 +1,30 @@
+.card {
+  max-width: 720px;
+  margin: 32px auto;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid var(--ink-10);
+  border-radius: var(--radius-2xl);
+  background: var(--white);
+}
+
+.topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.refresh { padding: 7px 10px; border: 1px solid var(--ink-10); border-radius: var(--radius-pill); background: var(--white); color: var(--ink-70); font: inherit; font-size: 13px; }
+.refresh:hover { border-color: var(--ink); color: var(--ink); }
+.refresh:disabled { cursor: wait; opacity: .55; }
+.card h1 { margin-top: 12px; font-family: var(--font-display); font-size: clamp(36px, 6vw, 56px); font-weight: 500; line-height: 1.05; }
+.lead { margin-top: 14px; max-width: 560px; color: var(--ink-70); line-height: 1.6; }
+.payment { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; padding: 15px 18px; border-radius: 14px; background: var(--sand); }
+.payment strong { color: #9b4312; }
+.payment[data-status="paid"] { background: var(--tint-mint); }
+.payment[data-status="paid"] strong { color: #287044; }
+.payment[data-status="failed"], .payment[data-status="refunded"] { background: #ffe8e2; }
+.details { display: grid; gap: 12px; margin: 24px 0; }
+.details div { display: flex; justify-content: space-between; gap: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--ink-10); }
+.details dt { color: var(--ink-50); }
+.details dd { max-width: 65%; overflow-wrap: anywhere; text-align: right; font-weight: 600; }
+.share { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; margin: 0 0 20px; color: var(--ink-70); font-size: 13px; line-height: 1.45; }
+.share button { padding: 7px 10px; border: 1px solid var(--ink-10); border-radius: var(--radius-pill); background: var(--white); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; }
+.share button:hover { border-color: var(--ink); }
+.card > .btn { width: 100%; }
+.note, .contact { margin-top: 16px; color: var(--ink-70); font-size: 13px; line-height: 1.5; }
+.error { margin-top: 16px; padding: 12px; border-radius: 10px; background: #ffe8e2; color: #8a2415; }

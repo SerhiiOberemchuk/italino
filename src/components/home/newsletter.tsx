@@ -1,4 +1,4 @@
-import { InstagramIcon, SendIcon } from "@/components/ui/icons";
+import Link from "next/link";
 import styles from "./newsletter.module.css";
 
 export function Newsletter() {
@@ -6,40 +6,23 @@ export function Newsletter() {
     <section className={`wrap ${styles.section}`} aria-labelledby="news-title">
       <div className={styles.panel}>
         <div>
-          <h2 id="news-title">Нові надходження — першими</h2>
+          <h2 id="news-title">Нові надходження щотижня</h2>
           <p>
-            Раз на тиждень надсилаємо добірку речей, які приїдуть наступною
-            поставкою. Без спаму, відписка в один клік.
+            Переглядайте свіжі позиції каталогу та звертайтеся до нас, якщо
+            потрібна допомога з вибором або велике замовлення.
           </p>
         </div>
         <div>
-          {/* Обробник підписки буде додано разом із бекендом розсилки. */}
-          <form className={styles.form} action="#" method="post">
-            <input
-              type="email"
-              name="email"
-              placeholder="Ваш e-mail"
-              aria-label="E-mail для підписки"
-              autoComplete="email"
-            />
-            <button type="submit" className="btn btn--primary btn--sm">
-              Підписатися
-            </button>
-          </form>
-          <div className={styles.socials}>
-            <a href="https://t.me" className="btn btn--ghost btn--sm" rel="noreferrer">
-              <SendIcon /> Telegram
-            </a>
-            <a
-              href="https://instagram.com"
-              className="btn btn--ghost btn--sm"
-              rel="noreferrer"
-            >
-              <InstagramIcon /> Instagram
-            </a>
+          <div className={styles.form}>
+            <Link href="/catalog?sort=newest" className="btn btn--primary btn--sm">
+              Дивитися новинки
+            </Link>
+            <Link href="/contacts" className="btn btn--ghost btn--sm">
+              Зв’язатися з нами
+            </Link>
           </div>
           <p className={styles.hint}>
-            Натискаючи «Підписатися», ви погоджуєтесь із політикою конфіденційності.
+            Актуальні контакти й реквізити продавця наведені на сторінці контактів.
           </p>
         </div>
       </div>

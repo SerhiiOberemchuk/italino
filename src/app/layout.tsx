@@ -32,7 +32,7 @@ const storeJsonLd = {
   taxID: STORE.taxId,
   email: STORE.email,
   telephone: STORE.phone,
-  paymentAccepted: "Visa, Mastercard, Apple Pay, Google Pay via Hutko",
+  paymentAccepted: "Visa, Mastercard, Apple Pay, Google Pay",
   address: {
     "@type": "PostalAddress",
     streetAddress: "вул. Миру, будинок 2",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     template: "%s · Italino",
   },
   description:
-    "Рюкзаки й шопери, термопляшки та кухлі, базовий одяг, канцелярія й техніка з каталогу італійського постачальника Sipec. Замовляйте онлайн — щотижня веземо замовлення зі складу в Мілані в Україну.",
+    "Рюкзаки й шопери, термопляшки та кухлі, базовий одяг, канцелярія й техніка від Italino. Замовляйте онлайн — щотижня організовуємо доставку замовлень в Україну.",
   openGraph: {
     type: "website",
     locale: "uk_UA",

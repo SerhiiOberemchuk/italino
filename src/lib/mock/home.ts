@@ -334,7 +334,7 @@ export const homeBrands: HomeBrand[] = [
     name: "Handle Bags",
     tagline: "326 моделей",
     text: "Шопери та сумки з сертифікованої бавовни, джуту, паперу й переробленого PET. Від класичного Milano до подарункових мішечків.",
-    href: "/brands/handle-bags",
+    href: "/catalog?q=Handle",
     image: cdn("d3/91/d391f5e3-32f0-469e-b654-c3bcb4663422/handle_brand_homepage_new.jpg"),
   },
   {
@@ -342,7 +342,7 @@ export const homeBrands: HomeBrand[] = [
     name: "DEMI Design Milano",
     tagline: "65 моделей",
     text: "Рюкзаки, сумки для ноутбука, несесери й дорожні аксесуари. Колекції Brera, R-Live, Canvas 4.0 та OceanCycle з переробленого океанічного пластику.",
-    href: "/brands/demi-design-milano",
+    href: "/catalog?q=DEMI",
     image: cdn("1e/8d/1e8df668-220e-494c-b9c4-a1003dcaef39/demi_brand_homepage.jpg"),
   },
   {
@@ -350,7 +350,7 @@ export const homeBrands: HomeBrand[] = [
     name: "Utopic",
     tagline: "Базовий одяг",
     text: "Футболки, худі, поло, жилети та софтшели з органічної та переробленої бавовни. Сертифікована переробка GRS.",
-    href: "/brands/utopic",
+    href: "/catalog?q=Utopic",
     image: cdn("fb/fb/fbfb5b32-e614-456a-9c3a-cff5b4091aa8/utopic_brand_homepage.jpg"),
   },
 ];

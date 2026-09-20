@@ -16,7 +16,7 @@ const COLUMNS = [
       { label: "Техніка", href: "/catalog/tech" },
       { label: "Дім і кухня", href: "/catalog/home" },
       { label: "Подорожі та спорт", href: "/catalog/travel" },
-      { label: "Sale", href: "/sale" },
+      { label: "Sale", href: "/catalog?discounted=true" },
     ],
   },
   {
@@ -24,7 +24,7 @@ const COLUMNS = [
     links: [
       { label: "Доставка та оплата", href: "/delivery" },
       { label: "Обмін і повернення", href: "/returns" },
-      { label: "Оплата через Hutko", href: "/legal/payment" },
+      { label: "Оплата", href: "/legal/payment" },
     ],
   },
   {
@@ -46,8 +46,8 @@ export function SiteFooter() {
             <BrandLogo />
           </Link>
           <p>
-            Сумки, пляшки, одяг, канцелярія та подарунки з каталогу італійського
-            постачальника. Відправка зі складу в Мілані щонеділі.
+            Italino — постачальник сумок, пляшок, одягу, канцелярії та подарунків
+            для щоденних і корпоративних потреб. Замовлення відправляємо до України щотижня.
           </p>
           <ul className={styles.contacts}>
             <li>
@@ -111,7 +111,6 @@ export function SiteFooter() {
             <li>MASTERCARD</li>
             <li>APPLE PAY</li>
             <li>GOOGLE PAY</li>
-            <li>HUTKO</li>
           </ul>
         </div>
       </div>

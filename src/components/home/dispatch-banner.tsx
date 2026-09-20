@@ -51,8 +51,8 @@ export function DispatchBanner() {
               <Link href="/catalog" className="btn btn--lime">
                 Встигнути замовити
               </Link>
-              <Link href="/track" className="btn btn--light">
-                Відстежити замовлення
+              <Link href="/contacts" className="btn btn--light">
+                Запитати про замовлення
               </Link>
             </div>
           </div>

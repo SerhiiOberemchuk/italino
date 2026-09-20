@@ -7,13 +7,13 @@ export function PromoSplit() {
   return (
     <section className={`wrap ${styles.section}`} aria-label="Sale та пропозиція для бізнесу">
       <div className={styles.grid}>
-        <Link href="/sale" className={`${styles.tile} ${styles.tileSale}`}>
+        <Link href="/catalog?discounted=true" className={`${styles.tile} ${styles.tileSale}`}>
           <div className={styles.copy}>
             <p className={`eyebrow ${styles.eyebrow}`}>Кінець серій та останні партії</p>
             <h3>Sale до −50%</h3>
             <p className={styles.text}>
-              Речі, які постачальник знімає з каталогу, за спеціальною ціною.
-              Поповнюємо перед кожною поставкою.
+              Добірка моделей з обмеженим залишком і спеціальною ціною.
+              Актуальний асортимент оновлюємо перед кожною поставкою.
             </p>
             <span className={`btn btn--ghost ${styles.btn}`}>Дивитися sale</span>
           </div>
@@ -22,7 +22,7 @@ export function PromoSplit() {
           </div>
         </Link>
 
-        <Link href="/business" className={`${styles.tile} ${styles.tileBusiness}`}>
+        <Link href="/contacts" className={`${styles.tile} ${styles.tileBusiness}`}>
           <div className={styles.copy}>
             <p className={`eyebrow ${styles.eyebrow}`}>Для бізнесу</p>
             <h3>Мерч і подарунки з логотипом</h3>

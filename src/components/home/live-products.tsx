@@ -22,7 +22,7 @@ export async function LiveProducts() {
     <ProductRail
       eyebrow="Щойно в каталозі"
       title="Нові надходження"
-      href="/catalog?sort=new"
+      href="/catalog?sort=newest"
       linkLabel="Усі новинки"
       products={products}
       emptyMessage={unavailable

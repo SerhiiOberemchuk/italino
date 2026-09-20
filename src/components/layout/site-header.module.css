@@ -167,8 +167,7 @@
 }
 
 @media (max-width: 639px) {
-  .actions > :nth-child(2),
-  .actions > :nth-child(3) {
+  .actions > :nth-child(2) {
     display: none;
   }
 }

@@ -11,7 +11,7 @@ export default function Page() {
     <div className={styles.content}>
       <section className={styles.section}><h2>Продавець</h2><SellerDetails /></section>
       <section className={styles.section}><h2>Як звернутися</h2><p>Телефон: <a href={STORE.phoneHref}>{STORE.phone}</a><br />E-mail: <a href={`mailto:${STORE.email}`}>{STORE.email}</a></p><p>У зверненні про замовлення вкажіть його номер. Звернення електронною поштою приймаються цілодобово; відповідь надаємо у робочий час.</p></section>
-      <section className={styles.section}><h2>Оплата</h2><p>Одержувачем коштів за товари є {STORE.legalName}. Онлайн-платежі обробляє Hutko. Рахунок продавця відкритий в АТ «ПУМБ»; платіжні реквізити для переказу надаються лише у рахунку або погодженому договорі.</p></section>
+      <section className={styles.section}><h2>Оплата</h2><p>Одержувачем коштів за товари є {STORE.legalName}. Оплата карткою здійснюється на захищеній платіжній сторінці. Рахунок продавця відкритий в АТ «ПУМБ»; реквізити для безготівкового переказу надаються у рахунку або погодженому договорі.</p></section>
     </div>
   </main>;
 }

@@ -13,7 +13,8 @@ export async function POST(request: Request) {
       const available = product.stock === null ? 99 : Math.max(0, product.stock);
       const quantity = Math.min(Number.isInteger(requested) ? Math.max(1, requested) : 1, available, 99);
       if (!quantity) return [];
-      return [{ productId: product.id, sku, name: product.name, image: product.images[0]?.url ?? null, price: product.price, currency: product.currency, color: product.color, size: product.size, quantity }];
+      const key = product.productGroupId ?? product.id;
+      return [{ productId: product.id, sku, name: product.name, image: product.images[0]?.url ?? null, price: product.price, currency: product.currency, color: product.color, size: product.size, quantity, href: `/product/${encodeURIComponent(key)}`, maxQuantity: product.stock }];
     });
     return Response.json({ items });
   } catch {
