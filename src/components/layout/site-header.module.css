@@ -24,20 +24,14 @@
 
 .logo {
   flex: none;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 24px;
-  letter-spacing: -0.045em;
-  line-height: 1;
-}
-
-.logo span {
-  color: var(--tomato);
+  --brand-mark-size: 29px;
+  --brand-word-size: 24px;
 }
 
 @media (min-width: 1024px) {
   .logo {
-    font-size: 27px;
+    --brand-mark-size: 33px;
+    --brand-word-size: 27px;
   }
 }
 
@@ -51,6 +45,12 @@
 @media (min-width: 1024px) {
   .nav {
     display: flex;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .navLink:nth-child(n + 5) {
+    display: none;
   }
 }
 
@@ -164,6 +164,13 @@
   align-items: center;
   gap: 2px;
   margin-left: auto;
+}
+
+@media (max-width: 639px) {
+  .actions > :nth-child(2),
+  .actions > :nth-child(3) {
+    display: none;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {

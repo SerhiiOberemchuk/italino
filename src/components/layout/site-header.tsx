@@ -7,6 +7,7 @@ import {
   UserIcon,
 } from "@/components/ui/icons";
 import { CartLink } from "@/components/cart/cart-link";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import styles from "./site-header.module.css";
 
 // Ключові розділи в шапці; повне дерево категорій (CRM → Sipec) відкриває кнопка «Каталог».
@@ -32,7 +33,7 @@ export function SiteHeader() {
         </button>
 
         <Link href="/" className={styles.logo} aria-label="Italino — на головну">
-          italino<span>.</span>
+          <BrandLogo />
         </Link>
 
         <nav className={styles.nav} aria-label="Основна навігація">

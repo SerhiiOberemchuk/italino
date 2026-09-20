@@ -23,15 +23,8 @@
 }
 
 .logo {
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 26px;
-  letter-spacing: -0.045em;
-  line-height: 1;
-}
-
-.logo span {
-  color: var(--tomato);
+  --brand-mark-size: 38px;
+  --brand-word-size: 29px;
 }
 
 .brand p {

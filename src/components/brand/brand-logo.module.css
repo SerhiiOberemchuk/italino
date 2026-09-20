@@ -1,0 +1,30 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34em;
+  color: var(--brand-logo-tone, var(--ink));
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mark {
+  flex: none;
+  width: var(--brand-mark-size, 31px);
+  height: var(--brand-mark-size, 31px);
+  overflow: visible;
+}
+
+.wordmark {
+  font-family: var(--font-body);
+  font-size: var(--brand-word-size, 27px);
+  font-weight: 700;
+  letter-spacing: -0.057em;
+}
+
+.period {
+  color: var(--tomato);
+}
+
+.inverse .mark {
+  filter: drop-shadow(0 0 0.01px transparent);
+}

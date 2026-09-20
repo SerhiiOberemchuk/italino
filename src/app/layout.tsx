@@ -4,6 +4,7 @@ import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { STORE } from "@/lib/store";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
 const display = Playfair_Display({
@@ -21,6 +22,26 @@ const body = Onest({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const storeJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "OnlineStore",
+  name: STORE.name,
+  url: siteUrl,
+  legalName: STORE.legalName,
+  taxID: STORE.taxId,
+  email: STORE.email,
+  telephone: STORE.phone,
+  paymentAccepted: "Visa, Mastercard, Apple Pay, Google Pay via Hutko",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "вул. Миру, будинок 2",
+    addressLocality: "село Сатиїв",
+    addressRegion: "Рівненська область",
+    postalCode: "35610",
+    addressCountry: "UA",
+  },
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -48,6 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="uk" className={`${display.variable} ${body.variable}`}>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd).replace(/</g, "\\u003c") }} />
         <AnnouncementBar />
         <SiteHeader />
         {children}

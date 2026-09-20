@@ -177,9 +177,14 @@ CRM **не конвертує валюти**. Sipec віддає ціну дил
   платіж). Реальна ТТН створюється в CRM після прибуття поставки.
 - `notes` — сайт записує дату поставки, у яку потрапило замовлення (див.
   DELIVERY.md).
-- Перед показом способів оплати/доставки на checkout читаємо
-  `GET /capabilities`: пропонуємо лише те, що підключено у workspace
-  (`nova_poshta`, `pickup`, `cod`, `prepaid`, `liqpay`/`wayforpay` тощо).
+- Перед checkout читаємо `GET /capabilities`. Магазин приймає онлайн-оплату
+  лише якщо CRM повернула `hutko` з `paymentLink: true`; інші вбудовані або
+  адаптерні способи на вітрині не показуються.
+- Після створення замовлення сайт викликає
+  `POST /orders/{externalId}/payment-link` з `provider: "hutko"`, `ttl: "24h"`
+  та HTTPS `returnUrl` сторінки успішного замовлення. Покупця одразу
+  перенаправляємо на hosted checkout Hutko. Merchant ID і payment key
+  зберігаються тільки в зашифрованій конфігурації адаптера CRM.
 - Вибір міста й відділення НП — через `GET /carriers/nova_poshta/cities?q=` і
   `.../warehouses?cityRef=` (працює, якщо у workspace підключено адаптер НП).
 
@@ -226,3 +231,7 @@ webhook-а — `cacheLife("minutes")` для товарів і `("hours")` дл�
 5. Перевірити реальні товари та ціни на головній. Токен не записувати в `.env.example`.
 6. Перевірити на тестовому workspace: каталог → картка → checkout → замовлення
    в `/admin/orders` CRM.
+7. У CRM створити адаптер Hutko, зберегти merchant ID і payment key, а
+   згенерований callback URL додати в Hutko. Переконатися, що `/capabilities`
+   повертає `{ key: "hutko", paymentLink: true }`, і провести контрольний
+   платіж із перевіркою підписаного callback та статусу оплати замовлення.

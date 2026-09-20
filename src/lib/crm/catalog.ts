@@ -50,7 +50,7 @@ export async function getProductVariants(key: string): Promise<CrmProduct[]> {
 
 export async function getCapabilities() {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
   cacheTag("capabilities");
   return (await crmGet<CrmCapabilities>("capabilities")).data;
 }

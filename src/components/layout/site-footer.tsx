@@ -1,11 +1,8 @@
 import Link from "next/link";
-import {
-  InstagramIcon,
-  MailIcon,
-  PhoneIcon,
-  SendIcon,
-} from "@/components/ui/icons";
+import { MailIcon, PhoneIcon } from "@/components/ui/icons";
+import { STORE } from "@/lib/store";
 import styles from "./site-footer.module.css";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 const COLUMNS = [
   {
@@ -27,20 +24,15 @@ const COLUMNS = [
     links: [
       { label: "Доставка та оплата", href: "/delivery" },
       { label: "Обмін і повернення", href: "/returns" },
-      { label: "Таблиця розмірів", href: "/size-guide" },
-      { label: "Відстежити замовлення", href: "/track" },
-      { label: "Для бізнесу", href: "/business" },
-      { label: "Питання й відповіді", href: "/faq" },
+      { label: "Оплата через Hutko", href: "/legal/payment" },
     ],
   },
   {
-    title: "Про нас",
+    title: "Інформація",
     links: [
-      { label: "Про Italino", href: "/about" },
-      { label: "Бренди", href: "/brands" },
       { label: "Контакти", href: "/contacts" },
-      { label: "Instagram", href: "https://instagram.com" },
-      { label: "Telegram", href: "https://t.me" },
+      { label: "Публічна оферта", href: "/legal/offer" },
+      { label: "Політика конфіденційності", href: "/legal/privacy" },
     ],
   },
 ];
@@ -51,32 +43,21 @@ export function SiteFooter() {
       <div className={`wrap ${styles.top}`}>
         <div className={styles.brand}>
           <Link href="/" className={styles.logo} aria-label="Italino — на головну">
-            italino<span>.</span>
+            <BrandLogo />
           </Link>
           <p>
             Сумки, пляшки, одяг, канцелярія та подарунки з каталогу італійського
             постачальника. Відправка зі складу в Мілані щонеділі.
           </p>
-          {/* Контакти — плейсхолдери до отримання реальних даних */}
           <ul className={styles.contacts}>
             <li>
-              <a href="tel:+380000000000">
-                <PhoneIcon /> +380 (00) 000-00-00
+              <a href={STORE.phoneHref}>
+                <PhoneIcon /> {STORE.phone}
               </a>
             </li>
             <li>
-              <a href="mailto:hello@italino.example">
-                <MailIcon /> hello@italino.example
-              </a>
-            </li>
-            <li>
-              <a href="https://t.me" rel="noreferrer">
-                <SendIcon /> Telegram
-              </a>
-            </li>
-            <li>
-              <a href="https://instagram.com" rel="noreferrer">
-                <InstagramIcon /> Instagram
+              <a href={`mailto:${STORE.email}`}>
+                <MailIcon /> {STORE.email}
               </a>
             </li>
           </ul>
@@ -121,12 +102,16 @@ export function SiteFooter() {
             <li>
               <Link href="/legal/privacy">Політика конфіденційності</Link>
             </li>
+            <li>
+              <Link href="/contacts">Реквізити продавця</Link>
+            </li>
           </ul>
           <ul className={styles.pay} aria-label="Способи оплати">
             <li>VISA</li>
             <li>MASTERCARD</li>
             <li>APPLE PAY</li>
             <li>GOOGLE PAY</li>
+            <li>HUTKO</li>
           </ul>
         </div>
       </div>

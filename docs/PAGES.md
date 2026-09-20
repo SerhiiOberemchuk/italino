@@ -20,15 +20,15 @@
 | `/checkout/success/[orderId]` | Дякуємо + дата поставки + кнопка оплати | ✅ | 1 |
 | `/track` | Де моє замовлення (номер + телефон/e-mail) | ⏳ | 2 |
 | `/delivery` | Доставка та оплата (тижневий цикл, НП, оплата) | ✅ | 1 |
-| `/returns` | Обмін і повернення | ⏳ | 2 |
+| `/returns` | Обмін і повернення | ✅ | 2 |
 | `/size-guide` | Таблиця розмірів одягу (IT → UA/EU) | ⏳ | 3 |
 | `/about` | Про Italino | ⏳ | 3 |
-| `/contacts` | Контакти | ⏳ | 3 |
+| `/contacts` | Контакти та реквізити продавця | ✅ | 3 |
 | `/faq` | Питання й відповіді | ⏳ | 3 |
 | `/account/*` | Кабінет: профіль, адреси, замовлення | 💤 | — |
 | `/favorites` | Обране (localStorage) | 💤 | — |
-| `/legal/offer`, `/legal/privacy` | Оферта, політика конфіденційності | ⏳ | 3 |
-| `/sitemap.xml`, `/robots.txt`, `/opengraph-image` | SEO-файли | ⏳ | 2 |
+| `/legal/offer`, `/legal/privacy`, `/legal/payment` | Оферта, конфіденційність, оплата Hutko | ✅ | 3 |
+| `/sitemap.xml`, `/robots.txt` | SEO-файли | ✅ | 2 |
 | `not-found.tsx`, `error.tsx`, `loading.tsx` | Службові | ✅ | 1 |
 
 ## Блоки сторінок
@@ -82,10 +82,11 @@
 - Крок 1: контакти (ім'я, телефон, e-mail).
 - Крок 2: доставка — спосіб з `GET /capabilities` (НП відділення/поштомат/
   кур'єр, самовивіз); місто й відділення через `carriers/nova_poshta/*`.
-- Крок 3: оплата — з `capabilities` (онлайн / накладений платіж).
+- Крок 3: онлайн-оплата Hutko, доступна лише коли CRM повертає
+  `payments[].key = "hutko"` з `paymentLink: true`.
 - Підтвердження: «Це замовлення поїде поставкою від DD.MM».
-- Server Action → `POST /api/v1/orders` з `externalId` сайту → редірект на
-  success. Якщо онлайн-оплата — `GET /orders/{id}/payment-link`.
+- Route Handler → `POST /api/v1/orders` з `externalId` сайту →
+  `POST /orders/{id}/payment-link` з `provider: "hutko"` → редірект на Hutko.
 
 ### `/track`
 - Форма: номер замовлення + телефон або e-mail (перевірка збігу з
