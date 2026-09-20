@@ -2,11 +2,11 @@ import Link from "next/link";
 import {
   GridIcon,
   HeartIcon,
-  MenuIcon,
   SearchIcon,
 } from "@/components/ui/icons";
 import { CartLink } from "@/components/cart/cart-link";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { MobileMenu } from "./mobile-menu";
 import styles from "./site-header.module.css";
 
 // Ключові розділи в шапці; повне дерево категорій (CRM → Sipec) відкриває кнопка «Каталог».
@@ -23,13 +23,7 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={`wrap ${styles.inner}`}>
-        <Link
-          href="/catalog"
-          className={`${styles.iconBtn} ${styles.menuBtn}`}
-          aria-label="Відкрити каталог"
-        >
-          <MenuIcon />
-        </Link>
+        <MobileMenu />
 
         <Link href="/" className={styles.logo} aria-label="Italino — на головну">
           <BrandLogo />

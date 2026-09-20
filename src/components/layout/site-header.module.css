@@ -206,16 +206,6 @@
   height: 22px;
 }
 
-.menuBtn {
-  margin-left: -8px;
-}
-
-@media (min-width: 1024px) {
-  .menuBtn {
-    display: none;
-  }
-}
-
 @media (min-width: 768px) and (max-width: 1023px) {
   .searchBtn {
     display: none;

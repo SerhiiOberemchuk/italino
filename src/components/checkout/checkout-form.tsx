@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
-import { CART_EVENT, CART_STORAGE_KEY, readCart, writeCart } from "@/lib/cart";
+import { useState } from "react";
+import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { CrmCapabilityMethod } from "@/lib/crm/types";
 import { HUTKO_PAYMENT_KEY } from "@/lib/store";
@@ -10,14 +10,10 @@ import Link from "next/link";
 import styles from "@/app/shop.module.css";
 
 type Props = { shipping: CrmCapabilityMethod[]; payments: CrmCapabilityMethod[]; minOrderAmount: number | null };
-function subscribe(callback: () => void) { window.addEventListener("storage", callback); window.addEventListener(CART_EVENT, callback); return () => { window.removeEventListener("storage", callback); window.removeEventListener(CART_EVENT, callback); }; }
-function snapshot() { return localStorage.getItem(CART_STORAGE_KEY) ?? "[]"; }
-function serverSnapshot() { return "[]"; }
-
 export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
   const router = useRouter();
-  useSyncExternalStore(subscribe, snapshot, serverSnapshot);
-  const items = readCart();
+  const items = useCartStore((state) => state.items);
+  const clearCart = useCartStore((state) => state.clear);
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +25,7 @@ export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
       const response = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ customer: { firstName: values.firstName, lastName: values.lastName, phone: values.phone, email: values.email, city: values.city }, delivery: { carrier: values.shipping, method: values.shipping === "pickup" ? "pickup" : "branch", branch: values.branch, comment: values.comment }, payment: values.payment, items: items.map(({ sku, quantity }) => ({ sku, quantity })) }) });
       const result = await response.json() as { orderId?: string; paymentUrl?: string; paymentPending?: boolean; error?: string };
       if (!response.ok || !result.orderId) throw new Error(result.error ?? "Не вдалося створити замовлення.");
-      writeCart([]);
+      clearCart();
       if (result.paymentUrl) sessionStorage.setItem(`italino-payment-${result.orderId}`, result.paymentUrl);
       if (result.paymentPending) sessionStorage.setItem(`italino-payment-pending-${result.orderId}`, "1");
       if (result.paymentUrl) { window.location.assign(result.paymentUrl); return; }

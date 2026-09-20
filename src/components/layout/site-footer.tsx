@@ -80,13 +80,13 @@ export function SiteFooter() {
           <h4>Графік поставок</h4>
           <ul>
             <li>
-              Прийом замовлень — <strong>до п’ятниці 18:00</strong>
+              Прийом замовлень — <strong>до середи 16:00</strong>
             </li>
             <li>
               Відправка з Мілана — <strong>щонеділі</strong>
             </li>
             <li>
-              Доставка Новою Поштою — <strong>5–9 днів</strong>
+              Доставка Новою Поштою — <strong>2–3 днів</strong>
             </li>
           </ul>
         </div>

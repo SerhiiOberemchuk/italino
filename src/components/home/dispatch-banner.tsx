@@ -4,7 +4,7 @@ import styles from "./dispatch-banner.module.css";
 
 const TIMELINE = [
   {
-    when: "Пт, 18:00",
+    when: "Ср, 16:00",
     what: "Закриваємо прийом замовлень",
     desc: "Усе, що оформлено до цього часу, їде цією поставкою.",
     hot: false,
@@ -16,7 +16,7 @@ const TIMELINE = [
     hot: true,
   },
   {
-    when: "+4–6 днів",
+    when: "+2–3 днів",
     what: "Поставка в Україні",
     desc: "Митне оформлення й передача в Нову Пошту, з’являється ТТН.",
     hot: false,
@@ -31,20 +31,25 @@ const TIMELINE = [
 
 export function DispatchBanner() {
   return (
-    <section className={`wrap ${styles.section}`} aria-labelledby="dispatch-title">
+    <section
+      className={`wrap ${styles.section}`}
+      aria-labelledby="dispatch-title"
+    >
       <div className={styles.panel}>
         <div className={styles.glowTomato} aria-hidden="true" />
         <div className={styles.glowLime} aria-hidden="true" />
 
         <div className={styles.inner}>
           <div>
-            <p className={`eyebrow ${styles.eyebrow}`}>Наступна відправка з Мілана</p>
+            <p className={`eyebrow ${styles.eyebrow}`}>
+              Наступна відправка з Мілана
+            </p>
             <h2 id="dispatch-title" className={styles.date}>
               <NextDispatchDate fallback="цієї неділі" />
             </h2>
             <p className={styles.note}>
-              Прийом замовлень у цю поставку закривається в п’ятницю о 18:00.
-              Усе, що оформлено пізніше, поїде наступної неділі.
+              Прийом замовлень у цю поставку закривається в середу о 16:00. Усе,
+              що оформлено пізніше, поїде наступної неділі.
             </p>
             <CutoffCountdown />
             <div className={styles.ctas}>
@@ -61,7 +66,9 @@ export function DispatchBanner() {
             {TIMELINE.map((item) => (
               <li
                 key={item.when}
-                className={item.hot ? `${styles.tItem} ${styles.tItemHot}` : styles.tItem}
+                className={
+                  item.hot ? `${styles.tItem} ${styles.tItemHot}` : styles.tItem
+                }
               >
                 <span className={styles.tWhen}>{item.when}</span>
                 <span className={styles.tWhat}>{item.what}</span>

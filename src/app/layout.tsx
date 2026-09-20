@@ -4,6 +4,7 @@ import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { CartStoreHydrator } from "@/components/cart/cart-store-hydrator";
 import { STORE } from "@/lib/store";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="uk" className={`${display.variable} ${body.variable}`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd).replace(/</g, "\\u003c") }} />
+        <CartStoreHydrator />
         <AnnouncementBar />
         <SiteHeader />
         {children}

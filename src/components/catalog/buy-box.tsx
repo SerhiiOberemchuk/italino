@@ -1,29 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useSyncExternalStore } from "react";
-import { addCartItem, CART_EVENT, CART_STORAGE_KEY, readCart } from "@/lib/cart";
+import { useMemo, useState } from "react";
+import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { CrmProduct } from "@/lib/crm/types";
 import styles from "@/app/shop.module.css";
 
 export function BuyBox({ variants }: { variants: CrmProduct[] }) {
   const [sku, setSku] = useState(variants[0]?.sku ?? "");
-  useSyncExternalStore(
-    (callback) => {
-      window.addEventListener("storage", callback);
-      window.addEventListener(CART_EVENT, callback);
-      return () => {
-        window.removeEventListener("storage", callback);
-        window.removeEventListener(CART_EVENT, callback);
-      };
-    },
-    () => localStorage.getItem(CART_STORAGE_KEY) ?? "[]",
-    () => "[]",
-  );
+  const cartItems = useCartStore((state) => state.items);
+  const addCartItem = useCartStore((state) => state.addItem);
   const selected = useMemo(() => variants.find((item) => item.sku === sku) ?? variants[0], [sku, variants]);
   if (!selected) return null;
-  const inCart = readCart().some((item) => item.sku === selected.sku);
+  const inCart = cartItems.some((item) => item.sku === selected.sku);
   const purchasable = Boolean(selected.sku && selected.price !== null && (selected.stock === null || selected.stock > 0) && !["out_of_stock", "discontinued"].includes(selected.availability));
   return <>
     <p className={styles.price}><strong>{selected.price === null ? "Ціна за запитом" : formatPrice(selected.price, selected.currency)}</strong>{selected.compareAtPrice && selected.price !== null && selected.compareAtPrice > selected.price ? <s>{formatPrice(selected.compareAtPrice, selected.currency)}</s> : null}</p>
