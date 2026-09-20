@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ArrowRightIcon } from "@/components/ui/icons";
@@ -7,7 +8,7 @@ import styles from "./product-rail.module.css";
 type Props = {
   eyebrow: string;
   title: string;
-  href: string;
+  href: Route;
   linkLabel: string;
   products: ProductCardModel[];
   emptyMessage?: string;

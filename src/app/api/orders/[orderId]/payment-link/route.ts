@@ -1,9 +1,11 @@
 import { getOrCreatePaymentLink } from "@/lib/crm/orders";
 import { CrmError } from "@/lib/crm/client";
+import { allowRequest, clientKey } from "@/lib/rate-limit";
 
-type Context = { params: Promise<{ orderId: string }> };
-
-export async function POST(_request: Request, { params }: Context) {
+export async function POST(request: Request, { params }: RouteContext<"/api/orders/[orderId]/payment-link">) {
+  if (!allowRequest(`payment-link:${clientKey(request)}`, 20)) {
+    return Response.json({ error: "Забагато спроб. Спробуйте за хвилину." }, { status: 429 });
+  }
   try {
     const link = await getOrCreatePaymentLink((await params).orderId);
     return Response.json({ checkoutUrl: link.checkoutUrl, expiresAt: link.expiresAt });

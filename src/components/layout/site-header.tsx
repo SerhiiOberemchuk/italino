@@ -10,14 +10,15 @@ import { MobileMenu } from "./mobile-menu";
 import styles from "./site-header.module.css";
 
 // Ключові розділи в шапці; повне дерево категорій (CRM → Sipec) відкриває кнопка «Каталог».
+// `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
 const NAV = [
-  { label: "Сумки та рюкзаки", href: "/catalog/bags" },
-  { label: "Пляшки та кухлі", href: "/catalog/drinkware" },
-  { label: "Одяг", href: "/catalog/clothing" },
-  { label: "Бренди", href: "/catalog#catalog-filters" },
+  { label: "Сумки та рюкзаки", href: "/catalog/bags", accent: false },
+  { label: "Пляшки та кухлі", href: "/catalog/drinkware", accent: false },
+  { label: "Одяг", href: "/catalog/clothing", accent: false },
+  { label: "Бренди", href: "/catalog#catalog-filters", accent: false },
   { label: "Sale", href: "/catalog?discounted=true", accent: true },
-  { label: "Для бізнесу", href: "/contacts" },
-];
+  { label: "Для бізнесу", href: "/contacts", accent: false },
+] as const;
 
 export function SiteHeader() {
   return (

@@ -4,8 +4,8 @@ import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { CartStoreHydrator } from "@/components/cart/cart-store-hydrator";
-import { STORE } from "@/lib/store";
+import { StoreHydrator } from "@/components/store-hydrator";
+import { publicSiteUrl, STORE } from "@/lib/store";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
 const display = Playfair_Display({
@@ -22,13 +22,13 @@ const body = Onest({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = publicSiteUrl();
 
 const storeJsonLd = {
   "@context": "https://schema.org",
   "@type": "OnlineStore",
   name: STORE.name,
-  url: siteUrl,
+  url: siteUrl.toString(),
   legalName: STORE.legalName,
   taxID: STORE.taxId,
   email: STORE.email,
@@ -45,7 +45,7 @@ const storeJsonLd = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: siteUrl,
   title: {
     default: "Italino — сумки, пляшки, одяг і подарунки на щодень",
     template: "%s · Italino",
@@ -71,7 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="uk" className={`${display.variable} ${body.variable}`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd).replace(/</g, "\\u003c") }} />
-        <CartStoreHydrator />
+        <StoreHydrator />
         <AnnouncementBar />
         <SiteHeader />
         {children}

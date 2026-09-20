@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MenuIcon } from "@/components/ui/icons";
 import styles from "./mobile-menu.module.css";
 
+// `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
 const NAV = [
   { label: "Каталог", href: "/catalog" },
   { label: "Сумки та рюкзаки", href: "/catalog/bags" },
@@ -14,7 +15,7 @@ const NAV = [
   { label: "Sale", href: "/catalog?discounted=true" },
   { label: "Для бізнесу", href: "/contacts" },
   { label: "Доставка та оплата", href: "/delivery" },
-];
+] as const;
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);

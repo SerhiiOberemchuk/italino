@@ -3,6 +3,7 @@
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent,
@@ -30,6 +31,14 @@ export function CustomSelect({ label, name, value, options }: CustomSelectProps)
   const [selectedValue, setSelectedValue] = useState(value);
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === selectedValue));
   const selected = options[selectedIndex] ?? options[0];
+
+  /*
+   * Cache Components ховають маршрут через <Activity> замість розмонтування,
+   * тож відкритий список пережив би перехід і повернення на сторінку. Для
+   * транзієнтного popover це неочікувано — закриваємо синхронно перед тим,
+   * як маршрут стане прихованим.
+   */
+  useLayoutEffect(() => () => setOpen(false), []);
 
   useEffect(() => {
     if (!open) return;

@@ -12,7 +12,7 @@ const TINT_CLASS: Record<HomeCategory["tint"], string> = {
   sand: styles.tintSand,
 };
 
-export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
+export function CategoryTiles({ categories }: { categories: readonly HomeCategory[] }) {
   return (
     <section className={`wrap ${styles.section}`} aria-labelledby="cats-title">
       <div className="section-head">

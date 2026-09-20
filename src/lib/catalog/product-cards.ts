@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import type { CrmProduct } from "@/lib/crm/types";
 
 /**
@@ -8,7 +9,7 @@ import type { CrmProduct } from "@/lib/crm/types";
  */
 export type ProductCard = {
   id: string;
-  href: string;
+  href: Route;
   name: string;
   brand: string | null;
   image: string | null;
@@ -66,7 +67,7 @@ export function toProductCards(products: CrmProduct[]): ProductCard[] {
 
     return {
       id: key,
-      href: `/product/${encodeURIComponent(key)}`,
+      href: `/product/${encodeURIComponent(key)}` as Route,
       name: lead.name,
       brand: lead.brand?.name ?? null,
       image: lead.images[0]?.url ?? null,

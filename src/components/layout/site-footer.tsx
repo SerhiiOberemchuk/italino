@@ -4,6 +4,7 @@ import { STORE } from "@/lib/store";
 import styles from "./site-footer.module.css";
 import { BrandLogo } from "@/components/brand/brand-logo";
 
+// `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
 const COLUMNS = [
   {
     title: "Каталог",
@@ -35,7 +36,7 @@ const COLUMNS = [
       { label: "Політика конфіденційності", href: "/legal/privacy" },
     ],
   },
-];
+] as const;
 
 export function SiteFooter() {
   return (

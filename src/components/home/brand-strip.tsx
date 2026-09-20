@@ -4,7 +4,7 @@ import { ArrowRightIcon } from "@/components/ui/icons";
 import type { HomeBrand } from "@/lib/mock/home";
 import styles from "./brand-strip.module.css";
 
-export function BrandStrip({ brands }: { brands: HomeBrand[] }) {
+export function BrandStrip({ brands }: { brands: readonly HomeBrand[] }) {
   return (
     <section className={styles.section} aria-labelledby="brands-title">
       <div className="wrap">

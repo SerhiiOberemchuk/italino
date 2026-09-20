@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon, SparklesIcon } from "@/components/ui/icons";
-import { heroShowcase } from "@/lib/mock/home";
+import { heroShowcase, type HeroTile } from "@/lib/mock/home";
 import styles from "./hero.module.css";
 
-const TINT_CLASS: Record<string, string> = {
+const TINT_CLASS: Record<HeroTile["tint"], string> = {
   lime: styles.tintLime,
   sky: styles.tintSky,
   tomato: styles.tintTomato,

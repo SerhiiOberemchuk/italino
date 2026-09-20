@@ -5,9 +5,7 @@ import { CrmError } from "@/lib/crm/client";
 import { getStoreOrderStatus } from "@/lib/crm/orders";
 import styles from "../../shop.module.css";
 
-type PageProps = { params: Promise<{ orderId: string }> };
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params }: PageProps<"/order/[orderId]">) {
   await connection();
   const { orderId } = await params;
   let order;

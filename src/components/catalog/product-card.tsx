@@ -2,33 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
 import { HeartIcon } from "@/components/ui/icons";
 import { swatchColor } from "@/lib/catalog/colors";
 import type { ProductCard as ProductCardModel } from "@/lib/catalog/product-cards";
-import { FAVORITES_EVENT, FAVORITES_STORAGE_KEY, readFavorites, toggleFavorite } from "@/lib/favorites";
+import { useFavoritesStore, useIsFavorite } from "@/lib/favorites";
 import { formatPrice } from "@/lib/format";
 import styles from "./product-card.module.css";
 
 const SWATCH_LIMIT = 6;
 
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  window.addEventListener(FAVORITES_EVENT, callback);
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener(FAVORITES_EVENT, callback);
-  };
-}
-
-function snapshot() {
-  return localStorage.getItem(FAVORITES_STORAGE_KEY) ?? "[]";
-}
-
 export function ProductCard({ product }: { product: ProductCardModel }) {
-  useSyncExternalStore(subscribe, snapshot, () => "[]");
+  const isFavorite = useIsFavorite(product.id);
+  const toggleFavorite = useFavoritesStore((state) => state.toggle);
   const extraColors = product.colors.length - SWATCH_LIMIT;
-  const isFavorite = readFavorites().some((item) => item.id === product.id);
 
   return (
     <article className={styles.card}>
@@ -52,7 +38,13 @@ export function ProductCard({ product }: { product: ProductCardModel }) {
         ) : null}
       </Link>
 
-      <button type="button" className={isFavorite ? `${styles.wish} ${styles.wishActive}` : styles.wish} aria-label={isFavorite ? "Прибрати з улюблених" : "Додати в улюблені"} aria-pressed={isFavorite} onClick={() => toggleFavorite(product)}>
+      <button
+        type="button"
+        className={isFavorite ? `${styles.wish} ${styles.wishActive}` : styles.wish}
+        aria-label={isFavorite ? "Прибрати з улюблених" : "Додати в улюблені"}
+        aria-pressed={isFavorite}
+        onClick={() => toggleFavorite(product)}
+      >
         <HeartIcon />
       </button>
 

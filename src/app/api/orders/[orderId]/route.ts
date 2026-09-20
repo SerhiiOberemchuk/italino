@@ -1,9 +1,7 @@
 import { getStoreOrderStatus } from "@/lib/crm/orders";
 import { CrmError } from "@/lib/crm/client";
 
-type Context = { params: Promise<{ orderId: string }> };
-
-export async function GET(_request: Request, { params }: Context) {
+export async function GET(_request: Request, { params }: RouteContext<"/api/orders/[orderId]">) {
   try {
     return Response.json(await getStoreOrderStatus((await params).orderId));
   } catch (error) {

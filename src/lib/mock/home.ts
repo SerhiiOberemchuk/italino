@@ -238,20 +238,12 @@ const PRODUCT_SEEDS: Seed[] = [
 
 export const homeProducts: CrmProduct[] = PRODUCT_SEEDS.flatMap(expand);
 
-export type CategoryTint = "lime" | "sky" | "tomato" | "mint" | "sand";
 
-export type HomeCategory = {
-  slug: string;
-  name: string;
-  href: string;
-  /** Packshot на білому тлі з CDN Sipec. */
-  image: string;
-  note: string;
-  tint: CategoryTint;
-};
+/** Тип виводимо з даних: літеральні адреси мають дожити до <Link> для typedRoutes. */
+export type HomeCategory = (typeof homeCategories)[number];
 
 /** Категорії сайту — згруповане дерево Sipec (див. docs/PAGES.md → мапінг категорій). */
-export const homeCategories: HomeCategory[] = [
+export const homeCategories = [
   {
     slug: "bags",
     name: "Сумки та рюкзаки",
@@ -316,19 +308,12 @@ export const homeCategories: HomeCategory[] = [
     note: "Несесери, косметички, аксесуари",
     tint: "tomato",
   },
-];
+] as const;
 
-export type HomeBrand = {
-  slug: string;
-  name: string;
-  tagline: string;
-  text: string;
-  href: string;
-  image: string;
-};
+export type HomeBrand = (typeof homeBrands)[number];
 
 /** Три бренди каталогу; lifestyle-банери — з сайту постачальника. */
-export const homeBrands: HomeBrand[] = [
+export const homeBrands = [
   {
     slug: "handle-bags",
     name: "Handle Bags",
@@ -353,19 +338,12 @@ export const homeBrands: HomeBrand[] = [
     href: "/catalog?q=Utopic",
     image: cdn("fb/fb/fbfb5b32-e614-456a-9c3a-cff5b4091aa8/utopic_brand_homepage.jpg"),
   },
-];
+] as const;
 
-export type HeroTile = {
-  label: string;
-  note: string;
-  href: string;
-  image: string;
-  alt: string;
-  tint: "lime" | "sky" | "tomato" | "mint";
-};
+export type HeroTile = (typeof heroShowcase)[number];
 
 /** Вітрина в hero: по одному packshot на ключовий напрям асортименту. */
-export const heroShowcase: HeroTile[] = [
+export const heroShowcase = [
   {
     label: "Рюкзаки",
     note: "158 моделей",
@@ -398,7 +376,7 @@ export const heroShowcase: HeroTile[] = [
     alt: "Бавовняний шопер з довгими ручками",
     tint: "mint",
   },
-];
+] as const;
 
 /** Фото промо-блоків. */
 export const homeImages = {

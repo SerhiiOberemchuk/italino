@@ -5,7 +5,7 @@ import styles from "../shop.module.css";
 
 export const metadata: Metadata = { title: "Каталог", description: "Товари зі складу ITALINO" };
 
-export default function CatalogPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default function CatalogPage({ searchParams }: PageProps<"/catalog">) {
   return (
     <main className={`wrap ${styles.page}`}>
       <div className={styles.hero}>
