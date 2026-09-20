@@ -3,6 +3,7 @@ import { getCapabilities, getLiveProducts } from "@/lib/crm/catalog";
 import { crmPost, CrmError } from "@/lib/crm/client";
 import type { CrmOrderIntakeResponse } from "@/lib/crm/types";
 import { allowRequest, clientKey } from "@/lib/rate-limit";
+import { shippingMethod } from "@/lib/shipping/methods";
 import { formatDispatchDate, nextDispatch } from "@/lib/shipping/schedule";
 import { storefrontUrl } from "@/lib/site-url";
 import { HUTKO_PAYMENT_KEY } from "@/lib/store";
@@ -73,11 +74,17 @@ export async function POST(request: Request) {
       return Response.json({ error: "Сума замовлення не відповідає умовам магазину." }, { status: 400 });
     }
 
-    const carrier = text(input.delivery?.carrier, 120);
+    // Перевізника звіряємо з переліком вітрини, а не з capabilities: CRM віддає
+    // серед вбудованих методів самовивіз, якого Italino не пропонує.
+    const delivery = shippingMethod(text(input.delivery?.carrier, 120));
+    const branch = text(input.delivery?.branch, 200);
     const payment = text(input.payment, 50);
     const hutko = capabilities.payments.find((method) => method.key === HUTKO_PAYMENT_KEY && method.paymentLink);
-    if (!capabilities.shipping.some((method) => method.key === carrier)) {
+    if (!delivery) {
       return Response.json({ error: "Обраний спосіб доставки недоступний." }, { status: 400 });
+    }
+    if (!branch) {
+      return Response.json({ error: "Вкажіть відділення або поштомат Нової Пошти." }, { status: 400 });
     }
     if (payment !== HUTKO_PAYMENT_KEY || !hutko) {
       return Response.json({ error: "Онлайн-оплата тимчасово недоступна. Спробуйте пізніше." }, { status: 503 });
@@ -93,16 +100,12 @@ export async function POST(request: Request) {
         lastName,
         phone,
         email,
-        shippingAddress: {
-          country: "UA",
-          city,
-          line1: text(input.delivery?.branch, 255) || (carrier === "pickup" ? "Самовивіз" : "Уточнити з покупцем"),
-        },
+        shippingAddress: { country: "UA", city, line1: branch },
       },
       delivery: {
-        carrier,
-        method: carrier === "pickup" ? "pickup" : "branch",
-        branch: text(input.delivery?.branch, 200) || undefined,
+        carrier: delivery.key,
+        method: delivery.method,
+        branch,
         cod: false,
         comment: text(input.delivery?.comment, 1000) || undefined,
       },

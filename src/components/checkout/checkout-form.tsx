@@ -3,32 +3,22 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { NovaPoshtaFields } from "@/components/checkout/nova-poshta-fields";
 import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { CrmCapabilityMethod } from "@/lib/crm/types";
+import { SHIPPING_METHODS } from "@/lib/shipping/methods";
 import { HUTKO_PAYMENT_KEY } from "@/lib/store";
 import styles from "@/app/shop.module.css";
 
 type Props = {
-  shipping: CrmCapabilityMethod[];
   payments: CrmCapabilityMethod[];
   minOrderAmount: number | null;
 };
 
 type CheckoutResult = { orderId?: string; paymentUrl?: string; error?: string };
 
-/**
- * CRM віддає англійські підписи вбудованих методів ("Self pickup", "Nova
- * Poshta") — на українській вітрині їх показувати не можна. Незнайомий ключ
- * лишається з підписом CRM, щоб новий перевізник не зник із форми.
- */
-const SHIPPING_LABELS: Record<string, string> = {
-  pickup: "Самовивіз",
-  nova_poshta: "Нова Пошта",
-  ukrposhta: "Укрпошта",
-};
-
-export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
+export function CheckoutForm({ payments, minOrderAmount }: Props) {
   const router = useRouter();
   const hydrated = useCartStore((state) => state.hydrated);
   const items = useCartStore((state) => state.items);
@@ -37,6 +27,7 @@ export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
   const [error, setError] = useState("");
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const selected = SHIPPING_METHODS[0];
   const paymentAvailable = payments.some((method) => method.key === HUTKO_PAYMENT_KEY);
   const belowMinimum = minOrderAmount !== null && total < minOrderAmount;
 
@@ -59,7 +50,6 @@ export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
           },
           delivery: {
             carrier: values.shipping,
-            method: values.shipping === "pickup" ? "pickup" : "branch",
             branch: values.branch,
             comment: values.comment,
           },
@@ -106,32 +96,28 @@ export function CheckoutForm({ shipping, payments, minOrderAmount }: Props) {
             <label className={styles.field}>E-mail
               <input className={styles.input} name="email" type="email" required maxLength={255} autoComplete="email" />
             </label>
-            <label className={styles.field}>Місто
-              <input className={styles.input} name="city" required maxLength={120} autoComplete="address-level2" />
-            </label>
           </div>
         </section>
 
         <section className={styles.section}>
           <h2>2. Доставка</h2>
           <div className={styles.fields}>
-            {shipping.map((method, index) => (
-              <label className={styles.radio} key={method.key}>
-                <input type="radio" name="shipping" value={method.key} defaultChecked={index === 0} required />
-                <span>
-                  <strong>{SHIPPING_LABELS[method.key] ?? method.label}</strong><br />
-                  <small>
-                    {method.key === "pickup"
-                      ? "Самовивіз; деталі узгодить менеджер"
-                      : "Доставка за тарифами перевізника"}
-                  </small>
-                </span>
-              </label>
-            ))}
+            {SHIPPING_METHODS.length > 1 ? (
+              SHIPPING_METHODS.map((method, index) => (
+                <label className={styles.radio} key={method.key}>
+                  <input type="radio" name="shipping" value={method.key} defaultChecked={index === 0} required />
+                  <span><strong>{method.label}</strong><br /><small>{method.hint}</small></span>
+                </label>
+              ))
+            ) : (
+              /* Єдиний перевізник — радіокнопка без вибору лише плутала б. */
+              <div className={styles.radio}>
+                <input type="hidden" name="shipping" value={selected.key} />
+                <span><strong>{selected.label}</strong><br /><small>{selected.hint}</small></span>
+              </div>
+            )}
           </div>
-          <label className={styles.field}>Відділення або адреса
-            <input className={styles.input} name="branch" maxLength={200} placeholder="Для самовивозу можна залишити порожнім" />
-          </label>
+          <NovaPoshtaFields />
           <label className={styles.field}>Коментар
             <textarea className={styles.textarea} name="comment" maxLength={1000} />
           </label>
