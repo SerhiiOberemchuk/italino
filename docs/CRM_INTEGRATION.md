@@ -55,7 +55,7 @@ Sipec (постачальник)  ──адаптер CRM──►  Obriym CRM 
 | `GET /api/v1/orders/{externalId}/payment-link` | `payments:read` | кнопка «Оплатити» після оформлення |
 | `POST /api/v1/customers`, `GET/PATCH /customers/{externalId}` | `customers:*` | кабінет (етап 2) |
 
-Формат помилок CRM: `{ code, message, requestId, details? }` з HTTP-статусом
+Формат помилок CRM: `{ error: { code, message, requestId, details? } }` з HTTP-статусом
 (`400/401/403/404/409/413/422/429/500`). Сайт логує `requestId` і показує
 покупцю нейтральне повідомлення.
 
@@ -208,13 +208,21 @@ webhook-а — `cacheLife("minutes")` для товарів і `("hours")` дл�
 
 ## Чекліст підключення
 
+Серверне підключення реалізоване в `src/lib/crm/client.ts`, кеш товарів —
+`src/lib/crm/catalog.ts`. Головна читає тільки склад **ITALINO** через
+`warehouseId=OBRIYM_WAREHOUSE_ID`, з `status=active`,
+`storefrontVisibility=visible` та `sort=newest`. Якщо склад не задано, запит
+не виконується, щоб випадково не опублікувати весь каталог workspace.
+Показуємо до 8 моделей із перших 100 артикулів; повна пагінація каталогу й
+підвантаження всіх варіантів моделі належать до майбутньої сторінки каталогу.
+Категорії та промо-блоки головної наразі залишаються статичними.
+
 1. У CRM підключити адаптер Sipec (ключ дилера), обрати бренди й категорії,
    задати склад, курс і націнку, запустити імпорт і активувати чернетки.
 2. Створити категорії Italino в CRM і призначити їх імпортованим товарам
    (мапінг — [ASSORTMENT.md](ASSORTMENT.md)).
 3. Створити API token для джерела «Сайт Italino» зі scopes із таблиці.
-4. Заповнити `.env.local`: `OBRIYM_API_URL`, `OBRIYM_API_TOKEN`.
-5. Реалізувати `src/lib/crm/client.ts` (fetch + Bearer + помилки) і замінити
-   `src/lib/mock/home.ts` на реальні виклики в `page.tsx`.
+4. Заповнити `.env.local`: `OBRIYM_API_URL`, `OBRIYM_API_TOKEN`, `OBRIYM_WAREHOUSE_ID`.
+5. Перевірити реальні товари та ціни на головній. Токен не записувати в `.env.example`.
 6. Перевірити на тестовому workspace: каталог → картка → checkout → замовлення
    в `/admin/orders` CRM.

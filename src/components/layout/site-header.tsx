@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
-  BagIcon,
   GridIcon,
   HeartIcon,
   MenuIcon,
   SearchIcon,
   UserIcon,
 } from "@/components/ui/icons";
+import { CartLink } from "@/components/cart/cart-link";
 import styles from "./site-header.module.css";
 
 // Ключові розділи в шапці; повне дерево категорій (CRM → Sipec) відкриває кнопка «Каталог».
@@ -77,12 +77,7 @@ export function SiteHeader() {
           <Link href="/favorites" className={styles.iconBtn} aria-label="Обране">
             <HeartIcon />
           </Link>
-          <Link href="/cart" className={styles.iconBtn} aria-label="Кошик, 2 товари">
-            <BagIcon />
-            <span className={styles.badge} aria-hidden="true">
-              2
-            </span>
-          </Link>
+          <CartLink />
         </div>
       </div>
     </header>

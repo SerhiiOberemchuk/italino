@@ -5,8 +5,12 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   images: {
     remotePatterns: [
-      // CDN каталогу Sipec: фото товарів приходять у CRM хот-лінками саме звідси.
       { protocol: "https", hostname: "media.on-gadget.com" },
+      {
+        protocol: "https",
+        hostname: "w99cualo4tspebtl.public.blob.vercel-storage.com",
+        pathname: "/workspaces/tbjcDiJpZCs065xbRAjUi0kiZBVS0d3O/products/**",
+      },
     ],
   },
 };

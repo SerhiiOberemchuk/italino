@@ -11,6 +11,7 @@ export type CrmProductPrice = {
 };
 
 export type CrmProductImage = { url: string };
+export type CrmProductAttribute = { name: string; unit: string | null; value: string };
 
 export type CrmProductStatus = "draft" | "active" | "archived";
 
@@ -28,6 +29,10 @@ export type CrmProduct = {
   currency: string;
   prices: CrmProductPrice[];
   images: CrmProductImage[];
+  warehouseId?: string | null;
+  storefrontVisible?: boolean;
+  barcode?: string | null;
+  attributes?: CrmProductAttribute[];
   brand: { id: string; name: string | null } | null;
   category: { id: string; name: string | null; parentId: string | null } | null;
   /** Код моделі, спільний для всіх розмірів/кольорів однієї речі. */
@@ -81,4 +86,31 @@ export type CrmApiError = {
   message: string;
   requestId: string;
   details?: { field: string; message: string }[];
+};
+
+export type CrmCapabilityMethod = {
+  key: string;
+  kind: "builtin" | "adapter";
+  label: string;
+  modes?: string[];
+  paymentLink?: boolean;
+  status: "active";
+};
+
+export type CrmCapabilities = {
+  data: {
+    cart: { currency: string; freeShippingThreshold: number | null; minOrderAmount: number | null };
+    payments: CrmCapabilityMethod[];
+    shipping: CrmCapabilityMethod[];
+  };
+};
+
+export type CrmOrderIntakeResponse = {
+  data: {
+    id: string;
+    externalId: string;
+    status: CrmOrderStatus;
+    importStatus: "created" | "existing";
+    deduplicated: boolean;
+  };
 };

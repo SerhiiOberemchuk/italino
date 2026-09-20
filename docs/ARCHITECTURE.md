@@ -45,9 +45,9 @@
 4. **View-моделі замість сирих відповідей CRM.** Компоненти не знають про поля
    CRM. Між API та UI — тонкий шар `src/lib/catalog/*` (наприклад,
    `toProductCards`, який групує рядки-розміри в одну картку).
-5. **Мок-дані у формі відповіді CRM.** Поки токена немає, `src/lib/mock/*`
-   віддає дані з тими самими типами, що й API. Підключення CRM не змінює
-   компоненти.
+5. **Живі товари з CRM.** Головна читає товари складу ITALINO. Мок-товари
+   залишені як приклад контракту; помилки CRM не підміняються мок-даними.
+   Статичні банери й плитки категорій поки зберігаються в `src/lib/mock/home.ts`.
 6. **Нові залежності — лише з погодженням.**
 
 ## Структура коду
@@ -68,7 +68,8 @@ src/
     ui/                  icons.tsx (інлайн-SVG, без бібліотеки іконок)
   lib/
     crm/types.ts         типи публічного API CRM (звужені до потрібних полів)
-    crm/client.ts        (план) fetch-обгортка: base URL, Bearer, помилки, "use cache"
+    crm/client.ts        server-only fetch: base URL, Bearer, timeout, помилки
+    crm/catalog.ts       товари складу ITALINO, "use cache", cacheLife("minutes")
     catalog/             view-моделі: product-cards.ts
     shipping/schedule.ts розклад поставок, nextCutoff/nextDispatch, форматування дат
     format.ts            formatPrice (UAH, uk-UA)
@@ -110,8 +111,8 @@ docs/                    документація
 
 - Фото товарів приходять із CRM як абсолютні URL (`images[].url`). Домен(и)
   додаються в `images.remotePatterns` у `next.config.ts`.
-- Зараз для дизайну використано плейсхолдери з `images.unsplash.com` (уже в
-  `remotePatterns`). Після підключення CRM цей домен прибрати.
+- Дозволені CDN Sipec `media.on-gadget.com` і шлях фото товарів поточного
+  workspace у Vercel Blob. Для іншого сховища додати точний домен/шлях.
 - Пропорції: картка товару 3:4, hero 4:5, плитки категорій — cover.
 
 ## Змінні середовища
@@ -120,6 +121,7 @@ docs/                    документація
 | --- | --- | --- |
 | `OBRIYM_API_URL` | сервер | Базовий URL інстансу CRM, без `/api/v1` |
 | `OBRIYM_API_TOKEN` | сервер | Scoped Bearer token `obr_...` (див. CRM_INTEGRATION.md → Scopes) |
+| `OBRIYM_WAREHOUSE_ID` | сервер | Обов’язковий ID складу ITALINO; обмежує товари вітрини |
 | `NEXT_PUBLIC_SITE_URL` | клієнт+сервер | Канонічний URL сайту для metadata, OG, sitemap |
 | `CRM_WEBHOOK_SECRET` | сервер | (план) підпис webhook-ів CRM для `revalidateTag` |
 

@@ -7,19 +7,19 @@
 | Маршрут | Сторінка | Статус | Пріоритет |
 | --- | --- | --- | --- |
 | `/` | Головна | 🟡 | — |
-| `/catalog` | Увесь каталог + пошук (`?q=`) | ⏳ | 1 |
-| `/catalog/[category]` | Категорія (bags, drinkware, clothing, hats, office, tech, home, travel) з фільтрами | ⏳ | 1 |
-| `/product/[slug]` | Сторінка товару (модель + вибір кольору й розміру) | ⏳ | 1 |
+| `/catalog` | Увесь каталог + пошук (`?q=`) | ✅ | 1 |
+| `/catalog/[category]` | Категорія (bags, drinkware, clothing, hats, office, tech, home, travel) з фільтрами | ✅ | 1 |
+| `/product/[slug]` | Сторінка товару (модель + вибір кольору й розміру) | ✅ | 1 |
 | `/brands` | Усі бренди | ⏳ | 2 |
 | `/brands/[slug]` | Бренд: Handle Bags, DEMI Design Milano, Utopic | ⏳ | 2 |
 | `/sale` | Sale (кінець серій, `compareAtPrice`) | ⏳ | 2 |
 | `/collections/[slug]` | Добірка з CRM (напр. Sustainable Living) | ⏳ | 2 |
 | `/business` | Для бізнесу: опт, мерч, нанесення логотипа + форма запиту | ⏳ | 2 |
-| `/cart` | Кошик | ⏳ | 1 |
-| `/checkout` | Оформлення замовлення | ⏳ | 1 |
-| `/checkout/success/[orderId]` | Дякуємо + дата поставки + кнопка оплати | ⏳ | 1 |
+| `/cart` | Кошик | ✅ | 1 |
+| `/checkout` | Оформлення замовлення | ✅ | 1 |
+| `/checkout/success/[orderId]` | Дякуємо + дата поставки + кнопка оплати | ✅ | 1 |
 | `/track` | Де моє замовлення (номер + телефон/e-mail) | ⏳ | 2 |
-| `/delivery` | Доставка та оплата (тижневий цикл, НП, оплата) | ⏳ | 1 |
+| `/delivery` | Доставка та оплата (тижневий цикл, НП, оплата) | ✅ | 1 |
 | `/returns` | Обмін і повернення | ⏳ | 2 |
 | `/size-guide` | Таблиця розмірів одягу (IT → UA/EU) | ⏳ | 3 |
 | `/about` | Про Italino | ⏳ | 3 |
@@ -29,7 +29,7 @@
 | `/favorites` | Обране (localStorage) | 💤 | — |
 | `/legal/offer`, `/legal/privacy` | Оферта, політика конфіденційності | ⏳ | 3 |
 | `/sitemap.xml`, `/robots.txt`, `/opengraph-image` | SEO-файли | ⏳ | 2 |
-| `not-found.tsx`, `error.tsx`, `loading.tsx` | Службові | ⏳ | 1 |
+| `not-found.tsx`, `error.tsx`, `loading.tsx` | Службові | ✅ | 1 |
 
 ## Блоки сторінок
 

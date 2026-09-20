@@ -10,9 +10,10 @@ type Props = {
   href: string;
   linkLabel: string;
   products: ProductCardModel[];
+  emptyMessage?: string;
 };
 
-export function ProductRail({ eyebrow, title, href, linkLabel, products }: Props) {
+export function ProductRail({ eyebrow, title, href, linkLabel, products, emptyMessage }: Props) {
   const headingId = `rail-${title.replace(/\s+/g, "-").toLowerCase()}`;
   return (
     <section className={`wrap ${styles.section}`} aria-labelledby={headingId}>
@@ -28,11 +29,15 @@ export function ProductRail({ eyebrow, title, href, linkLabel, products }: Props
         </Link>
       </div>
 
-      <div className={styles.grid}>
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {products.length === 0 ? (
+        <p role="status">{emptyMessage ?? "Товарів поки немає."}</p>
+      ) : (
+        <div className={styles.grid}>
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
