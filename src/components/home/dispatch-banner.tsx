@@ -1,30 +1,31 @@
 import Link from "next/link";
 import { CutoffCountdown, NextDispatchDate } from "./dispatch-clock";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import styles from "./dispatch-banner.module.css";
 
 const TIMELINE = [
   {
-    when: "Ср, 16:00",
+    when: SCHEDULE_COPY.cutoffShort,
     what: "Закриваємо прийом замовлень",
     desc: "Усе, що оформлено до цього часу, їде цією поставкою.",
     hot: false,
   },
   {
-    when: "Нд",
+    when: SCHEDULE_COPY.dispatchShort,
     what: "Відправка з Мілана",
     desc: "Одна поставка на всі замовлення тижня.",
     hot: true,
   },
   {
-    when: "+2–3 днів",
+    when: SCHEDULE_COPY.borderLeg,
     what: "Поставка в Україні",
     desc: "Митне оформлення й передача в Нову Пошту, з’являється ТТН.",
     hot: false,
   },
   {
-    when: "+1–2 дні",
+    when: SCHEDULE_COPY.lastMileLeg,
     what: "Отримання",
-    desc: "Відділення, поштомат або кур’єр Нової Пошти.",
+    desc: "Відділення або поштомат Нової Пошти.",
     hot: false,
   },
 ];
@@ -45,11 +46,11 @@ export function DispatchBanner() {
               Наступна відправка з Мілана
             </p>
             <h2 id="dispatch-title" className={styles.date}>
-              <NextDispatchDate fallback="цієї неділі" />
+              <NextDispatchDate fallback={SCHEDULE_COPY.dispatchName} />
             </h2>
             <p className={styles.note}>
-              Прийом замовлень у цю поставку закривається в середу о 16:00. Усе,
-              що оформлено пізніше, поїде наступної неділі.
+              Прийом замовлень у цю поставку закривається {SCHEDULE_COPY.cutoffOn}. Усе,
+              що оформлено пізніше, поїде {SCHEDULE_COPY.dispatchNext}.
             </p>
             <CutoffCountdown />
             <div className={styles.ctas}>

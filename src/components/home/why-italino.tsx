@@ -4,6 +4,8 @@ import {
   RefreshIcon,
   TruckIcon,
 } from "@/components/ui/icons";
+import { getFreeShippingThreshold } from "@/lib/crm/catalog";
+import { formatThreshold } from "@/lib/shipping/free-shipping";
 import styles from "./why-italino.module.css";
 
 // Тексти переваг — припущення до підтвердження (docs/PROJECT.md → Відкриті питання).
@@ -16,7 +18,9 @@ const ITEMS = [
   {
     icon: CreditCardIcon,
     title: "Ціна в гривні без сюрпризів",
-    text: "Доставка до України вже врахована у ціні на сайті. Ви бачите фінальну суму одразу.",
+    text: "Доставку з Мілана до України вже враховано в ціні на сайті.",
+    // Дописується фразою про безкоштовну Нову Пошту, якщо поріг задано в CRM.
+    freeShippingNote: true,
   },
   {
     icon: TruckIcon,
@@ -30,7 +34,8 @@ const ITEMS = [
   },
 ];
 
-export function WhyItalino() {
+export async function WhyItalino() {
+  const freeFrom = await getFreeShippingThreshold();
   return (
     <section className={styles.section} aria-labelledby="why-title">
       <div className="wrap">
@@ -50,7 +55,12 @@ export function WhyItalino() {
                 <item.icon />
               </span>
               <h3>{item.title}</h3>
-              <p>{item.text}</p>
+              <p>
+                {item.text}
+                {"freeShippingNote" in item && freeFrom !== null
+                  ? ` Від ${formatThreshold(freeFrom)} безкоштовна й доставка Новою Поштою.`
+                  : null}
+              </p>
             </li>
           ))}
         </ul>

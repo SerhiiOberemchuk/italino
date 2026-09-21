@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Onest, Playfair_Display } from "next/font/google";
+// Глобальні стилі — до компонентів: їхні CSS-модулі мають перекривати глобальні.
 import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -30,6 +31,7 @@ const storeJsonLd = {
   "@type": "OnlineStore",
   name: STORE.name,
   url: siteUrl.toString(),
+  logo: new URL("/logo.png", siteUrl).toString(),
   legalName: STORE.legalName,
   taxID: STORE.taxId,
   email: STORE.email,

@@ -10,7 +10,13 @@ export const metadata: Metadata = { title: "Оформлення замовле�
 async function Content() {
   const capabilities = await getCapabilities();
   const hutko = capabilities.payments.filter((method) => method.key === HUTKO_PAYMENT_KEY && method.paymentLink);
-  return <CheckoutForm payments={hutko} minOrderAmount={capabilities.cart.minOrderAmount} />;
+  return (
+    <CheckoutForm
+      payments={hutko}
+      minOrderAmount={capabilities.cart.minOrderAmount}
+      freeShippingFrom={capabilities.cart.currency === "UAH" ? capabilities.cart.freeShippingThreshold : null}
+    />
+  );
 }
 
 export default function Page() {

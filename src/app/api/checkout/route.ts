@@ -7,6 +7,7 @@ import { shippingMethod } from "@/lib/shipping/methods";
 import { formatDispatchDate, nextDispatch } from "@/lib/shipping/schedule";
 import { storefrontUrl } from "@/lib/site-url";
 import { HUTKO_PAYMENT_KEY } from "@/lib/store";
+import { formatThreshold, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 
 type Input = {
   customer?: Record<string, unknown>;
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Онлайн-оплата тимчасово недоступна. Спробуйте пізніше." }, { status: 503 });
     }
 
+    const freeFrom = capabilities.cart.freeShippingThreshold;
     const externalId = `italino-${randomUUID()}`;
     const order = await crmPost<CrmOrderIntakeResponse>("orders", {
       externalId,
@@ -118,7 +120,16 @@ export async function POST(request: Request) {
         cod: false,
         comment: text(input.delivery?.comment, 1000) || undefined,
       },
-      notes: `Замовлення сайту Italino. Найближча відправка: ${formatDispatchDate(nextDispatch())}. Онлайн-оплата.`,
+      notes: [
+        "Замовлення сайту Italino.",
+        `Найближча відправка: ${formatDispatchDate(nextDispatch())}.`,
+        "Онлайн-оплата.",
+        // CRM не застосовує поріг до ТТН сама: автоТТН бере одного платника на
+        // весь workspace. Без цієї позначки «безкоштовну» доставку оплатив би покупець.
+        ...(freeFrom !== null && qualifiesForFreeShipping(total, freeFrom)
+          ? [`БЕЗКОШТОВНА ДОСТАВКА (від ${formatThreshold(freeFrom)}): ТТН оформити за рахунок відправника.`]
+          : []),
+      ].join(" "),
     });
 
     let paymentUrl: string | undefined;

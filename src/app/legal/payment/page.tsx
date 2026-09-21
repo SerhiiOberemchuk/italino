@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { STORE } from "@/lib/store";
+import { getFreeShippingThreshold } from "@/lib/crm/catalog";
+import { formatThreshold } from "@/lib/shipping/free-shipping";
 import styles from "../legal.module.css";
 
 export const metadata: Metadata = { title: "Оплата", description: "Умови онлайн-оплати замовлень Italino." };
 
-export default function Page() {
+export default async function Page() {
+  const freeFrom = await getFreeShippingThreshold();
   return (
     <main className={`wrap ${styles.page}`}>
       <header className={styles.hero}>
@@ -49,7 +52,8 @@ export default function Page() {
           <p>
             Оплата здійснюється у гривнях. До підтвердження операції покупець бачить повну суму платежу.
             Можлива комісія банку визначається тарифами банку покупця та не входить у вартість замовлення.
-            Доставку Новою Поштою покупець оплачує окремо під час отримання.
+            Доставку Новою Поштою покупець оплачує окремо під час отримання
+            {freeFrom !== null ? `; для замовлень від ${formatThreshold(freeFrom)} вона безкоштовна` : ""}.
           </p>
         </section>
 

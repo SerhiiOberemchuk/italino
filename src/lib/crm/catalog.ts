@@ -89,3 +89,20 @@ export async function getCapabilities() {
   cacheTag("capabilities");
   return (await crmGet<CrmCapabilities>("capabilities")).data;
 }
+
+/**
+ * Поріг безкоштовної доставки з CRM у гривнях. `null` — поріг не задано,
+ * валюта не гривня або CRM недоступна: тоді безкоштовну доставку не обіцяємо.
+ * Кешується разом із capabilities; негайно оновити — POST /api/revalidate
+ * з тегом `capabilities`.
+ */
+export async function getFreeShippingThreshold(): Promise<number | null> {
+  try {
+    const { cart } = await getCapabilities();
+    return cart.currency === "UAH" && typeof cart.freeShippingThreshold === "number"
+      ? cart.freeShippingThreshold
+      : null;
+  } catch {
+    return null;
+  }
+}

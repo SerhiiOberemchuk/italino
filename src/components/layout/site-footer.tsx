@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { MailIcon, PhoneIcon } from "@/components/ui/icons";
 import { STORE } from "@/lib/store";
-import styles from "./site-footer.module.css";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ObriymMark } from "@/components/brand/obriym-mark";
 import { MastercardMark, VisaMark } from "@/components/ui/payment-marks";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
+import styles from "./site-footer.module.css";
 
 // `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
 const COLUMNS = [
@@ -83,13 +84,13 @@ export function SiteFooter() {
           <h4>Графік поставок</h4>
           <ul>
             <li>
-              Прийом замовлень — <strong>до середи 16:00</strong>
+              Прийом замовлень — <strong>{SCHEDULE_COPY.cutoffUntil}</strong>
             </li>
             <li>
-              Відправка з Мілана — <strong>щонеділі</strong>
+              Відправка з Мілана — <strong>{SCHEDULE_COPY.dispatchEvery}</strong>
             </li>
             <li>
-              Доставка Новою Поштою — <strong>2–3 днів</strong>
+              Отримання — <strong>{SCHEDULE_COPY.arrivalDays}</strong>
             </li>
           </ul>
         </div>

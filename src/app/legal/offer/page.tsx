@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SellerDetails } from "@/components/legal/seller-details";
 import { STORE } from "@/lib/store";
+import { getFreeShippingThreshold } from "@/lib/crm/catalog";
+import { formatThreshold } from "@/lib/shipping/free-shipping";
 import styles from "../legal.module.css";
 
 export const metadata: Metadata = { title: "Публічна оферта", description: "Умови продажу товарів в інтернет-магазині Italino." };
@@ -11,7 +13,8 @@ export const metadata: Metadata = { title: "Публічна оферта", desc
  * (ст. 8, 12, 13). Новий закон № 3153-IX набирає чинності лише з дня
  * припинення воєнного стану — тоді текст треба переглянути.
  */
-export default function Page() {
+export default async function Page() {
+  const freeFrom = await getFreeShippingThreshold();
   return (
     <main className={`wrap ${styles.page}`}>
       <header className={styles.hero}>
@@ -53,8 +56,10 @@ export default function Page() {
             налаштування екрана.
           </p>
           <p>
-            До оплати покупець бачить склад кошика й загальну вартість товарів. Вартість доставки до неї
-            не входить: доставку оплачує покупець за тарифами Нової Пошти під час отримання відправлення.
+            До оплати покупець бачить склад кошика й загальну вартість товарів. Ціна товару включає доставку
+            зі складу в Мілані до України. Доставку Новою Поштою до обраного відділення оплачує покупець за
+            тарифами перевізника під час отримання
+            {freeFrom !== null ? `; для замовлень від ${formatThreshold(freeFrom)} її оплачує продавець` : ""}.
           </p>
         </section>
 

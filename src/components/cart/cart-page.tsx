@@ -6,15 +6,18 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
+import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import styles from "@/app/shop.module.css";
 
-export function CartPage() {
+/** `freeShippingFrom` — поріг безкоштовної доставки з CRM; `null` — не задано. */
+export function CartPage({ freeShippingFrom }: { freeShippingFrom: number | null }) {
   const hydrated = useCartStore((state) => state.hydrated);
   const items = useCartStore((state) => state.items);
   const setItems = useCartStore((state) => state.setItems);
   const setQuantity = useCartStore((state) => state.setQuantity);
   const [validationMessage, setValidationMessage] = useState("");
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const freeShipping = qualifiesForFreeShipping(total, freeShippingFrom);
 
   /*
    * Звірка цін і залишків один раз після регідрації. Поточні рядки читаємо
@@ -110,7 +113,15 @@ export function CartPage() {
       <aside className={styles.summary}>
         <h2>Ваше замовлення</h2>
         <div className={styles.summaryRow}><span>Товари</span><strong>{formatPrice(total, "UAH")}</strong></div>
-        <div className={styles.summaryRow}><span>Доставка</span><span>за тарифами перевізника</span></div>
+        <div className={styles.summaryRow}>
+          <span>Доставка Новою Поштою</span>
+          {freeShipping ? <strong>безкоштовно</strong> : <span>за тарифами перевізника</span>}
+        </div>
+        {freeShippingFrom !== null && !freeShipping ? (
+          <p className={styles.lineMeta}>
+            Ще {formatPrice(amountToFreeShipping(total, freeShippingFrom), "UAH")} — і доставка буде безкоштовною.
+          </p>
+        ) : null}
         <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
           <span>Разом</span><strong>{formatPrice(total, "UAH")}</strong>
         </div>

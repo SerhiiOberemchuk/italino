@@ -4,7 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BuyBox } from "@/components/catalog/buy-box";
-import { getProductVariants, getStoreProducts } from "@/lib/crm/catalog";
+import { getFreeShippingThreshold, getProductVariants, getStoreProducts } from "@/lib/crm/catalog";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
+import { NextDispatchDate } from "@/components/home/dispatch-clock";
+import { formatThreshold } from "@/lib/shipping/free-shipping";
 import styles from "../../shop.module.css";
 
 function externalUrl(value: string): string | null {
@@ -36,7 +39,7 @@ export async function generateMetadata({ params }: PageProps<"/product/[slug]">)
 
 async function ProductContent({ params }: Pick<PageProps<"/product/[slug]">, "params">) {
   const { slug } = await params;
-  const variants = await getProductVariants(slug);
+  const [variants, freeFrom] = await Promise.all([getProductVariants(slug), getFreeShippingThreshold()]);
   if (!variants.length) notFound();
 
   const lead = variants[0];
@@ -86,8 +89,9 @@ async function ProductContent({ params }: Pick<PageProps<"/product/[slug]">, "pa
           <h1>{lead.name}</h1>
           <BuyBox variants={variants} />
           <div className={styles.infoBox}>
-            <strong>Найближча відправка — цієї неділі.</strong><br />
-            Орієнтовна доставка в Україну: 5–9 днів після відправки.
+            <strong>Найближча відправка — <NextDispatchDate fallback={SCHEDULE_COPY.dispatchOn} />.</strong><br />
+            Отримання Новою Поштою — {SCHEDULE_COPY.transit} після відправки, зазвичай {SCHEDULE_COPY.arrivalOn}.
+            {freeFrom !== null ? <><br />Доставка безкоштовна для замовлень від {formatThreshold(freeFrom)}.</> : null}
           </div>
           {lead.description ? <p className={styles.description}>{lead.description}</p> : null}
           {attributes.length ? (

@@ -5,6 +5,7 @@ import {
   SearchIcon,
   TruckIcon,
 } from "@/components/ui/icons";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import styles from "./how-it-works.module.css";
 
 const STEPS = [
@@ -16,21 +17,21 @@ const STEPS = [
   },
   {
     icon: BagIcon,
-    title: "Замовляйте до п’ятниці 18:00",
+    title: `Замовляйте ${SCHEDULE_COPY.cutoffUntil}`,
     text: "Оформлюєте замовлення онлайн і безпечно оплачуєте карткою на захищеній платіжній сторінці.",
     when: "до дедлайну",
   },
   {
     icon: PlaneIcon,
-    title: "Неділя — відправка з Мілана",
+    title: `${SCHEDULE_COPY.dispatchName[0].toUpperCase()}${SCHEDULE_COPY.dispatchName.slice(1)} — відправка з Мілана`,
     text: "Формуємо щотижневу поставку та організовуємо доставку замовлень в Україну.",
-    when: "щонеділі",
+    when: SCHEDULE_COPY.dispatchEvery,
   },
   {
     icon: TruckIcon,
     title: "Отримуєте Новою Поштою",
-    text: "5–9 днів від відправки — і посилка у відділенні, поштоматі або в кур’єра.",
-    when: "5–9 днів",
+    text: `${SCHEDULE_COPY.transit} від відправки — і посилка у відділенні чи поштоматі Нової Пошти, зазвичай ${SCHEDULE_COPY.arrivalOn}.`,
+    when: SCHEDULE_COPY.transit,
   },
 ];
 

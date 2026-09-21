@@ -9,16 +9,19 @@ import { formatPrice } from "@/lib/format";
 import type { CrmCapabilityMethod } from "@/lib/crm/types";
 import { SHIPPING_METHODS } from "@/lib/shipping/methods";
 import { HUTKO_PAYMENT_KEY } from "@/lib/store";
+import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import styles from "@/app/shop.module.css";
 
 type Props = {
   payments: CrmCapabilityMethod[];
   minOrderAmount: number | null;
+  /** Поріг безкоштовної доставки з CRM; `null` — не задано. */
+  freeShippingFrom: number | null;
 };
 
 type CheckoutResult = { orderId?: string; paymentUrl?: string; error?: string };
 
-export function CheckoutForm({ payments, minOrderAmount }: Props) {
+export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Props) {
   const router = useRouter();
   const hydrated = useCartStore((state) => state.hydrated);
   const items = useCartStore((state) => state.items);
@@ -28,6 +31,7 @@ export function CheckoutForm({ payments, minOrderAmount }: Props) {
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const selected = SHIPPING_METHODS[0];
+  const freeShipping = qualifiesForFreeShipping(total, freeShippingFrom);
   const paymentAvailable = payments.some((method) => method.key === HUTKO_PAYMENT_KEY);
   const belowMinimum = minOrderAmount !== null && total < minOrderAmount;
 
@@ -151,6 +155,15 @@ export function CheckoutForm({ payments, minOrderAmount }: Props) {
             <strong>{formatPrice(item.price * item.quantity, item.currency)}</strong>
           </div>
         ))}
+        <div className={styles.summaryRow}>
+          <span>Доставка Новою Поштою</span>
+          {freeShipping ? <strong>безкоштовно</strong> : <span>при отриманні</span>}
+        </div>
+        {freeShippingFrom !== null && !freeShipping ? (
+          <p className={styles.lineMeta}>
+            Ще {formatPrice(amountToFreeShipping(total, freeShippingFrom), "UAH")} — і доставка буде безкоштовною.
+          </p>
+        ) : null}
         <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
           <span>До сплати</span><strong>{formatPrice(total, "UAH")}</strong>
         </div>
