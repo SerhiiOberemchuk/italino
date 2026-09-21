@@ -134,7 +134,46 @@
 .pay {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+}
+
+/* Технологічний партнер: знак Obriym CRM + назва живим текстом. */
+.partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-70);
+  font-size: 12px;
+}
+
+.partner svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.partnerName {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.partner:hover .partnerName {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Логотипи Visa й Mastercard — вимога hutko до сайтів мерчантів. */
+.payMark {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+}
+
+.payMark svg {
+  display: block;
+  width: auto;
+  height: 14px;
 }
 
 .pay li {

@@ -3,6 +3,8 @@ import { MailIcon, PhoneIcon } from "@/components/ui/icons";
 import { STORE } from "@/lib/store";
 import styles from "./site-footer.module.css";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { ObriymMark } from "@/components/brand/obriym-mark";
+import { MastercardMark, VisaMark } from "@/components/ui/payment-marks";
 
 // `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
 const COLUMNS = [
@@ -96,6 +98,11 @@ export function SiteFooter() {
       <div className={styles.bottom}>
         <div className={`wrap ${styles.bottomInner}`}>
           <p>© 2026 Italino. Усі права захищено.</p>
+          <a className={styles.partner} href="https://obriym-crm.com" target="_blank" rel="noopener">
+            <span>Технологічний партнер</span>
+            <ObriymMark />
+            <span className={styles.partnerName}>Obriym CRM</span>
+          </a>
           <ul className={styles.legal}>
             <li>
               <Link href="/legal/offer">Публічна оферта</Link>
@@ -108,8 +115,8 @@ export function SiteFooter() {
             </li>
           </ul>
           <ul className={styles.pay} aria-label="Способи оплати">
-            <li>VISA</li>
-            <li>MASTERCARD</li>
+            <li className={styles.payMark}><VisaMark /></li>
+            <li className={styles.payMark}><MastercardMark /></li>
             <li>APPLE PAY</li>
             <li>GOOGLE PAY</li>
           </ul>
