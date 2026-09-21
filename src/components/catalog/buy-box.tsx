@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useCartStore, useSkuInCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { CrmProduct } from "@/lib/crm/types";
+import { trackEvent } from "@/lib/analytics";
 import styles from "@/app/shop.module.css";
 
 const UNAVAILABLE = ["out_of_stock", "discontinued"];
@@ -25,6 +26,11 @@ export function BuyBox({ variants }: { variants: CrmProduct[] }) {
 
   function addToCart() {
     if (!selected?.sku || selected.price === null) return;
+    trackEvent("add_to_cart", {
+      currency: selected.currency,
+      value: selected.price,
+      items: [{ item_id: selected.sku, item_name: selected.name, price: selected.price, quantity: 1 }],
+    });
     const key = selected.productGroupId ?? selected.id;
     addCartItem({
       productId: selected.id,

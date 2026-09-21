@@ -10,6 +10,7 @@ import type { CrmCapabilityMethod } from "@/lib/crm/types";
 import { SHIPPING_METHODS } from "@/lib/shipping/methods";
 import { HUTKO_PAYMENT_KEY } from "@/lib/store";
 import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
+import { trackEvent } from "@/lib/analytics";
 import styles from "@/app/shop.module.css";
 
 type Props = {
@@ -37,6 +38,7 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    trackEvent("checkout_submit");
     setPending(true);
     setError("");
     const values = Object.fromEntries(new FormData(event.currentTarget));
@@ -65,6 +67,7 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
       });
       const result = await response.json() as CheckoutResult;
       if (!response.ok || !result.orderId) throw new Error(result.error ?? "Не вдалося створити замовлення.");
+      trackEvent("order_created", { currency: "UAH", value: total });
       clearCart();
       // Платіжне посилання далі бере сторінка замовлення з CRM — на випадок,
       // якщо покупець повернеться до неї з іншого пристрою чи вкладки.
@@ -85,7 +88,8 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
   }
 
   return (
-    <form className={styles.checkoutLayout} onSubmit={submit}>
+    // Ім’я, телефон, e-mail і відділення не мають потрапляти в записи Clarity.
+    <form className={styles.checkoutLayout} onSubmit={submit} data-clarity-mask="True">
       <div className={styles.form}>
         <section className={styles.section}>
           <h2>1. Контакти</h2>

@@ -89,7 +89,7 @@ export function OrderStatus({ initialOrder }: Props) {
       : "До сплати";
   const status = orderCopy[order.orderStatus];
   return (
-    <div className={styles.card}>
+    <div className={styles.card} data-clarity-mask="True">
       <div className={styles.topline}>
         <p className="eyebrow">Статус замовлення</p>
         <button className={styles.refresh} type="button" onClick={() => void refresh()} disabled={loading}>{loading ? "Оновлюємо…" : "Оновити"}</button>
