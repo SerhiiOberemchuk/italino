@@ -51,6 +51,8 @@ export function CheckoutForm({ payments, minOrderAmount }: Props) {
           delivery: {
             carrier: values.shipping,
             branch: values.branch,
+            cityRef: values.cityRef,
+            branchRef: values.branchRef,
             comment: values.comment,
           },
           payment: values.payment,

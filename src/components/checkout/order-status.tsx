@@ -83,6 +83,10 @@ export function OrderStatus({ initialOrder }: Props) {
   }
 
   const canPay = order.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(order.orderStatus);
+  // «До сплати» під сумою вже оплаченого замовлення читається як новий рахунок.
+  const amountLabel = order.paymentStatus === "paid" ? "Оплачено"
+    : order.paymentStatus === "refunded" ? "Сума замовлення"
+      : "До сплати";
   const status = orderCopy[order.orderStatus];
   return (
     <div className={styles.card}>
@@ -97,8 +101,8 @@ export function OrderStatus({ initialOrder }: Props) {
         <strong>{paymentCopy[order.paymentStatus]}</strong>
       </div>
       <dl className={styles.details}>
-        <div><dt>Номер замовлення</dt><dd>{order.orderId}</dd></div>
-        <div><dt>До сплати</dt><dd>{formatPrice(Number(order.totalAmount), order.currency)}</dd></div>
+        <div><dt>Номер замовлення</dt><dd>{order.number ?? order.orderId}</dd></div>
+        <div><dt>{amountLabel}</dt><dd>{formatPrice(Number(order.totalAmount), order.currency)}</dd></div>
         <div><dt>Створено</dt><dd>{formatDate(order.createdAt)}</dd></div>
       </dl>
       <div className={styles.share}>

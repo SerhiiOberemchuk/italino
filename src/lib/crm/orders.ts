@@ -15,6 +15,8 @@ type CrmPayment = {
 type CrmOrderDetail = {
   data: {
     externalId: string;
+    /** Людський номер CRM, напр. «20260920-023». Старі замовлення можуть його не мати. */
+    number?: string | null;
     status: CrmOrderStatus;
     totalAmount: string;
     currency: string;
@@ -25,6 +27,8 @@ type CrmOrderDetail = {
 
 export type StoreOrderStatus = {
   orderId: string;
+  /** Що показувати покупцеві й диктувати менеджеру; адреса сторінки лишається на orderId. */
+  number: string | null;
   orderStatus: CrmOrderStatus;
   paymentStatus: "pending" | "paid" | "failed" | "refunded";
   totalAmount: string;
@@ -67,6 +71,7 @@ export async function getStoreOrderStatus(orderId: string): Promise<StoreOrderSt
   if (!detail || detail.externalId !== orderId) throw new CrmError("ORDER_NOT_FOUND", 404);
   return {
     orderId,
+    number: typeof detail.number === "string" && detail.number.trim() ? detail.number.trim() : null,
     orderStatus: detail.status,
     paymentStatus: paymentStatus(payments),
     totalAmount: detail.totalAmount,

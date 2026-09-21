@@ -20,9 +20,9 @@ function aborted(reason: unknown): boolean {
 /**
  * Вибір пункту отримання з довідника Нової Пошти.
  *
- * У форму значення віддають приховані поля з канонічними підписами — саме їх
- * CRM зіставляє з живим довідником, коли створює накладну. Ідентифікатори
- * (`ref`) лишаються тут: схема замовлення в CRM їх не приймає.
+ * У форму йдуть і підписи, і ідентифікатори. `cityRef` + `branchRef` дають CRM
+ * створити накладну прямо з замовлення, без жодного вгадування; підписи —
+ * для людей у картці замовлення й запасний шлях, якщо ідентифікатор загубиться.
  */
 export function NovaPoshtaFields() {
   const [cityQuery, setCityQuery] = useState("");
@@ -66,6 +66,7 @@ export function NovaPoshtaFields() {
   return (
     <>
       <input type="hidden" name="city" value={city?.label ?? ""} />
+      <input type="hidden" name="cityRef" value={city?.value ?? ""} />
 
       <Combobox
         label="Місто"
@@ -127,6 +128,7 @@ function WarehouseField({ city, onError }: { city: ComboboxOption | null; onErro
   return (
     <>
       <input type="hidden" name="branch" value={selected?.label ?? ""} />
+      <input type="hidden" name="branchRef" value={selected?.value ?? ""} />
       <Combobox
         label="Відділення або поштомат"
         placeholder={city ? "Номер або вулиця" : "Спершу оберіть місто"}

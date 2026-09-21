@@ -16,6 +16,8 @@ type Input = {
 };
 
 const UNAVAILABLE = ["out_of_stock", "discontinued"];
+/** Ідентифікатори Нової Пошти — UUID (`CityRef`, `WarehouseRef`). */
+const NP_REF = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const text = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 
 export async function POST(request: Request) {
@@ -78,6 +80,12 @@ export async function POST(request: Request) {
     // серед вбудованих методів самовивіз, якого Italino не пропонує.
     const delivery = shippingMethod(text(input.delivery?.carrier, 120));
     const branch = text(input.delivery?.branch, 200);
+    // Ідентифікатори йдуть лише парою: без cityRef накладну за branchRef не
+    // створити. Кривий або відсутній ref замовлення не блокує — CRM тоді
+    // зіставить підписи як текст, як і було до появи цих полів.
+    const cityRef = text(input.delivery?.cityRef, 64);
+    const branchRef = text(input.delivery?.branchRef, 64);
+    const refs = NP_REF.test(cityRef) && NP_REF.test(branchRef) ? { cityRef, branchRef } : {};
     const payment = text(input.payment, 50);
     const hutko = capabilities.payments.find((method) => method.key === HUTKO_PAYMENT_KEY && method.paymentLink);
     if (!delivery) {
@@ -106,6 +114,7 @@ export async function POST(request: Request) {
         carrier: delivery.key,
         method: delivery.method,
         branch,
+        ...refs,
         cod: false,
         comment: text(input.delivery?.comment, 1000) || undefined,
       },
