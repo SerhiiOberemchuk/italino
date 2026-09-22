@@ -9,6 +9,7 @@
 .section p + p { margin-top: 10px; }
 .section ul, .section ol { display: grid; gap: 8px; padding-left: 0; justify-items: center; }
 .section a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.marks { display: flex; justify-content: center; margin-top: 16px; }
 .requisites { display: grid; }
 .requisites div { display: grid; gap: 4px; padding: 12px 0; border-bottom: 1px solid var(--ink-10); }
 .requisites div:last-child { border-bottom: 0; }

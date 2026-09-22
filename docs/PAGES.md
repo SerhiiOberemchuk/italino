@@ -17,7 +17,7 @@
 | `/business` | Для бізнесу: опт, мерч, нанесення логотипа + форма запиту | ⏳ | 2 |
 | `/cart` | Кошик | ✅ | 1 |
 | `/checkout` | Оформлення замовлення | ✅ | 1 |
-| `/checkout/success/[orderId]` | Дякуємо + дата поставки + кнопка оплати | ✅ | 1 |
+| `/checkout/success/[orderId]` → `/order/[orderId]` | Статус замовлення, кнопка оплати; після оплати — квитанція (позиції, продавець, дата й спосіб оплати, «Зберегти PDF / Надрукувати») | ✅ | 1 |
 | `/track` | Де моє замовлення (номер + телефон/e-mail) | ⏳ | 2 |
 | `/delivery` | Доставка та оплата (тижневий цикл, НП, оплата) | ✅ | 1 |
 | `/returns` | Обмін і повернення | ✅ | 2 |
@@ -27,7 +27,7 @@
 | `/faq` | Питання й відповіді | ⏳ | 3 |
 | `/account/*` | Кабінет: профіль, адреси, замовлення | 💤 | — |
 | `/favorites` | Обране (localStorage) | 💤 | — |
-| `/legal/offer`, `/legal/privacy`, `/legal/payment` | Оферта, конфіденційність, оплата Hutko | ✅ | 3 |
+| `/legal/offer`, `/legal/terms`, `/legal/privacy`, `/legal/payment` | Оферта, умови використання, конфіденційність, оплата RozetkaPay | ✅ | 3 |
 | `/sitemap.xml`, `/robots.txt` | SEO-файли | ✅ | 2 |
 | `not-found.tsx`, `error.tsx`, `loading.tsx` | Службові | ✅ | 1 |
 
@@ -82,11 +82,13 @@
 - Крок 1: контакти (ім'я, телефон, e-mail).
 - Крок 2: доставка — спосіб з `GET /capabilities` (НП відділення/поштомат/
   кур'єр, самовивіз); місто й відділення через `carriers/nova_poshta/*`.
-- Крок 3: онлайн-оплата Hutko, доступна лише коли CRM повертає
-  `payments[].key = "hutko"` з `paymentLink: true`.
-- Підтвердження: «Це замовлення поїде поставкою від DD.MM».
+- Крок 3: онлайн-оплата RozetkaPay, доступна лише коли CRM повертає
+  `payments[].key = "rozetkapay"` з `paymentLink: true`.
+- Логотипи Visa, Mastercard і ПРОСТІР у кроці оплати.
+- Підсумок: дата відправки з Мілана й орієнтовне отримання; над згодою —
+  коротко про списання, скасування до відправки й повернення.
 - Route Handler → `POST /api/v1/orders` з `externalId` сайту →
-  `POST /orders/{id}/payment-link` з `provider: "hutko"` → редірект на Hutko.
+  `POST /orders/{id}/payment-link` з `provider: "rozetkapay"` → редірект на RozetkaPay.
 
 ### `/track`
 - Форма: номер замовлення + телефон або e-mail (перевірка збігу з

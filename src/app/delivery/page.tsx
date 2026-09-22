@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CutoffCountdown, NextDispatchDate } from "@/components/home/dispatch-clock";
+import { CardMarks } from "@/components/ui/payment-marks";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { getFreeShippingThreshold } from "@/lib/crm/catalog";
 import { formatThreshold } from "@/lib/shipping/free-shipping";
@@ -49,12 +50,26 @@ export default async function Page() {
               {freeFrom !== null ? `, а для замовлень від ${formatThreshold(freeFrom)} доставка безкоштовна` : ""}.
               Строки орієнтовні й залежать від митного оформлення та роботи перевізника.
             </p>
+            <p>
+              Вартість доставки залежно від ваги й розміру посилки можна розрахувати в{" "}
+              <a href="https://novaposhta.ua/shipping-cost/" target="_blank" rel="noopener"><u>калькуляторі Нової Пошти</u></a>.
+            </p>
           </section>
 
           <section className={styles.section}>
             <h2>Оплата</h2>
-            <p>Замовлення оплачується на захищеній платіжній сторінці. Дані картки не надходять до Italino.</p>
-            <p><Link href="/legal/payment"><u>Умови оплати</u></Link></p>
+            <p>
+              Замовлення оплачується онлайн повною сумою під час оформлення: картками Visa, Mastercard і ПРОСТІР,
+              а також через Apple Pay і Google Pay, якщо ці способи доступні. Накладеного платежу немає.
+            </p>
+            <CardMarks />
+            <p>
+              Оплата проходить на захищеній платіжній сторінці RozetkaPay; дані картки не надходять до Italino.
+              Скасувати оплачене замовлення можна до відправки з Мілана — з поверненням усієї суми.
+            </p>
+            <p>
+              <Link href="/legal/payment"><u>Умови оплати</u></Link> · <Link href="/returns"><u>Обмін і повернення</u></Link>
+            </p>
           </section>
         </div>
 

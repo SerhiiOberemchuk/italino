@@ -2,7 +2,7 @@ import "server-only";
 
 import { crmGet, crmPost, CrmError } from "./client";
 import { storefrontUrl } from "@/lib/site-url";
-import { HUTKO_PAYMENT_KEY } from "@/lib/store";
+import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
 import type { CrmOrderStatus } from "./types";
 
 const STORE_ORDER_ID = /^italino-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,7 +22,18 @@ type CrmOrderDetail = {
     currency: string;
     createdAt: string;
     updatedAt: string;
+    /** Знімки позицій на момент замовлення; поля — як у рядках `crm_order_items`. */
+    items?: unknown;
   };
+};
+
+/** Рядок квитанції. `total` уже з урахуванням знижки рядка. */
+export type StoreOrderItem = {
+  name: string;
+  sku: string | null;
+  quantity: number;
+  unitPrice: number;
+  total: number;
 };
 
 export type StoreOrderStatus = {
@@ -35,6 +46,9 @@ export type StoreOrderStatus = {
   currency: string;
   createdAt: string;
   updatedAt: string;
+  items: StoreOrderItem[];
+  /** Час першої успішної оплати; `null`, доки замовлення не оплачене. */
+  paidAt: string | null;
 };
 
 type CrmPaymentLink = {
@@ -54,6 +68,34 @@ function paymentStatus(payments: CrmPayment[]): StoreOrderStatus["paymentStatus"
   if (statuses.some((status) => status === "refunded" || status === "partially_refunded")) return "refunded";
   if (statuses.some((status) => status === "failed" || status === "cancelled")) return "failed";
   return "pending";
+}
+
+function paidAt(payments: CrmPayment[]): string | null {
+  const times = payments
+    .filter((payment) => payment.status === "paid" && typeof payment.paidAt === "string")
+    .map((payment) => payment.paidAt as string)
+    .sort();
+  return times[0] ?? null;
+}
+
+function orderItems(raw: unknown): StoreOrderItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((row: unknown) => {
+    if (!row || typeof row !== "object") return [];
+    const item = row as Record<string, unknown>;
+    const quantity = Number(item.quantity);
+    const unitPrice = Number(item.unitPrice);
+    if (typeof item.productName !== "string" || !Number.isFinite(quantity) || !Number.isFinite(unitPrice)) return [];
+    const discount = Number(item.discount ?? 0);
+    return [{
+      name: item.productName,
+      sku: typeof item.sku === "string" && item.sku ? item.sku : null,
+      quantity,
+      unitPrice,
+      // Та сама формула, що `calcOrderItemTotal` у CRM: знижка рядка — у відсотках.
+      total: unitPrice * quantity * (1 - (Number.isFinite(discount) ? discount : 0) / 100),
+    }];
+  });
 }
 
 async function getPayments(orderId: string): Promise<CrmPayment[]> {
@@ -78,6 +120,8 @@ export async function getStoreOrderStatus(orderId: string): Promise<StoreOrderSt
     currency: detail.currency,
     createdAt: detail.createdAt,
     updatedAt: detail.updatedAt,
+    items: orderItems(detail.items),
+    paidAt: paidAt(payments),
   };
 }
 
@@ -95,7 +139,7 @@ export async function getOrCreatePaymentLink(orderId: string): Promise<CrmPaymen
 
   const returnUrl = storefrontUrl(`/order/${encodeURIComponent(orderId)}`);
   return (await crmPost<CrmPaymentLink>(`orders/${encodeURIComponent(orderId)}/payment-link`, {
-    provider: HUTKO_PAYMENT_KEY,
+    provider: ROZETKAPAY_PAYMENT_KEY,
     ttl: "24h",
     ...(returnUrl ? { returnUrl } : {}),
   })).data;

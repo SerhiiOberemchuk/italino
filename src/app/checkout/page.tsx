@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { getCapabilities } from "@/lib/crm/catalog";
-import { HUTKO_PAYMENT_KEY } from "@/lib/store";
+import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
 import styles from "../shop.module.css";
 
 export const metadata: Metadata = { title: "Оформлення замовлення" };
 
 async function Content() {
   const capabilities = await getCapabilities();
-  const hutko = capabilities.payments.filter((method) => method.key === HUTKO_PAYMENT_KEY && method.paymentLink);
+  const rozetkapay = capabilities.payments.filter((method) => method.key === ROZETKAPAY_PAYMENT_KEY && method.paymentLink);
   return (
     <CheckoutForm
-      payments={hutko}
+      payments={rozetkapay}
       minOrderAmount={capabilities.cart.minOrderAmount}
       freeShippingFrom={capabilities.cart.currency === "UAH" ? capabilities.cart.freeShippingThreshold : null}
     />

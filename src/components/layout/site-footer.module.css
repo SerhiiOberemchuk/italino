@@ -54,6 +54,13 @@
   color: var(--tomato);
 }
 
+.hours {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-70);
+}
+
 .contacts svg {
   width: 16px;
   height: 16px;
@@ -163,14 +170,15 @@
   text-underline-offset: 3px;
 }
 
-/* Логотипи Visa й Mastercard — вимога hutko до сайтів мерчантів. */
+/* Логотипи платіжних систем — вимога RozetkaPay до сайтів мерчантів. */
 .payMark {
   display: flex;
   align-items: center;
   background: var(--white);
 }
 
-.payMark svg {
+.payMark svg,
+.payMark img {
   display: block;
   width: auto;
   height: 14px;

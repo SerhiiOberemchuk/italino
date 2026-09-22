@@ -39,7 +39,7 @@ const storeJsonLd = {
   taxID: STORE.taxId,
   email: STORE.email,
   telephone: STORE.phone,
-  paymentAccepted: "Visa, Mastercard, Apple Pay, Google Pay",
+  paymentAccepted: "Visa, Mastercard, ПРОСТІР, Apple Pay, Google Pay",
   address: {
     "@type": "PostalAddress",
     streetAddress: "вул. Миру, будинок 2",

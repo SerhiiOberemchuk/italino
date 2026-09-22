@@ -6,7 +6,7 @@ import { allowRequest, clientKey } from "@/lib/rate-limit";
 import { shippingMethod } from "@/lib/shipping/methods";
 import { formatDispatchDate, nextDispatch } from "@/lib/shipping/schedule";
 import { storefrontUrl } from "@/lib/site-url";
-import { HUTKO_PAYMENT_KEY } from "@/lib/store";
+import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
 import { formatThreshold, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 
 type Input = {
@@ -88,14 +88,14 @@ export async function POST(request: Request) {
     const branchRef = text(input.delivery?.branchRef, 64);
     const refs = NP_REF.test(cityRef) && NP_REF.test(branchRef) ? { cityRef, branchRef } : {};
     const payment = text(input.payment, 50);
-    const hutko = capabilities.payments.find((method) => method.key === HUTKO_PAYMENT_KEY && method.paymentLink);
+    const rozetkapay = capabilities.payments.find((method) => method.key === ROZETKAPAY_PAYMENT_KEY && method.paymentLink);
     if (!delivery) {
       return Response.json({ error: "Обраний спосіб доставки недоступний." }, { status: 400 });
     }
     if (!branch) {
       return Response.json({ error: "Вкажіть відділення або поштомат Нової Пошти." }, { status: 400 });
     }
-    if (payment !== HUTKO_PAYMENT_KEY || !hutko) {
+    if (payment !== ROZETKAPAY_PAYMENT_KEY || !rozetkapay) {
       return Response.json({ error: "Онлайн-оплата тимчасово недоступна. Спробуйте пізніше." }, { status: 503 });
     }
 
@@ -138,12 +138,12 @@ export async function POST(request: Request) {
       const returnUrl = storefrontUrl(`/order/${encodeURIComponent(externalId)}`);
       const link = await crmPost<{ data: { checkoutUrl: string } }>(
         `orders/${encodeURIComponent(externalId)}/payment-link`,
-        { provider: HUTKO_PAYMENT_KEY, ttl: "24h", ...(returnUrl ? { returnUrl } : {}) },
+        { provider: ROZETKAPAY_PAYMENT_KEY, ttl: "24h", ...(returnUrl ? { returnUrl } : {}) },
       );
       paymentUrl = link.data.checkoutUrl;
     } catch (error) {
       paymentPending = true;
-      console.error("[CRM Hutko payment link]", error instanceof CrmError ? { code: error.code, requestId: error.requestId } : { code: "UNKNOWN" });
+      console.error("[CRM RozetkaPay payment link]", error instanceof CrmError ? { code: error.code, requestId: error.requestId } : { code: "UNKNOWN" });
     }
 
     return Response.json({ orderId: order.data.externalId, paymentUrl, paymentPending }, { status: 201 });

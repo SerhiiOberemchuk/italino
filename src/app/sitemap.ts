@@ -7,7 +7,7 @@ const CATEGORIES = ["bags", "drinkware", "clothing", "hats", "office", "tech", "
 
 const STATIC_PATHS = [
   "/", "/catalog", "/delivery", "/returns", "/contacts",
-  "/legal/offer", "/legal/privacy", "/legal/payment",
+  "/legal/offer", "/legal/terms", "/legal/privacy", "/legal/payment",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

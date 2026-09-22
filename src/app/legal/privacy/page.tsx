@@ -19,7 +19,7 @@ export default function Page() {
       <header className={styles.hero}>
         <p className="eyebrow">Правова інформація</p>
         <h1>Політика конфіденційності</h1>
-        <p className={styles.updated}>Редакція від 21 вересня 2026 року</p>
+        <p className={styles.updated}>Редакція від 22 вересня 2026 року</p>
       </header>
 
       <div className={styles.content}>
@@ -75,7 +75,7 @@ export default function Page() {
           <h2>4. Кому передаємо дані</h2>
           <ul>
             <li>Obriym CRM — для обліку замовлень, товарів і статусів оплати;</li>
-            <li>сервісу інтернет-еквайрингу hutko (АТ «ПУМБ») — для прийому платежу й підтвердження його результату;</li>
+            <li>ТОВ «РОЗЕТКА ПЕЙ» — сервіс інтернет-еквайрингу RozetkaPay: для прийому платежу й підтвердження його результату;</li>
             <li>ТОВ «Нова Пошта» — для доставки: ім’я, телефон, місто й відділення отримувача;</li>
             <li>Microsoft Corporation — сервіс аналітики Microsoft Clarity: дані про користування сайтом;</li>
             <li>Google LLC — сервіс аналітики Google Analytics: дані про користування сайтом;</li>

@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { NovaPoshtaFields } from "@/components/checkout/nova-poshta-fields";
+import { NextDispatchDate } from "@/components/home/dispatch-clock";
+import { CardMarks } from "@/components/ui/payment-marks";
 import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { CrmCapabilityMethod } from "@/lib/crm/types";
 import { SHIPPING_METHODS } from "@/lib/shipping/methods";
-import { HUTKO_PAYMENT_KEY } from "@/lib/store";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
+import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
 import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import { trackEvent } from "@/lib/analytics";
 import styles from "@/app/shop.module.css";
@@ -33,7 +36,7 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const selected = SHIPPING_METHODS[0];
   const freeShipping = qualifiesForFreeShipping(total, freeShippingFrom);
-  const paymentAvailable = payments.some((method) => method.key === HUTKO_PAYMENT_KEY);
+  const paymentAvailable = payments.some((method) => method.key === ROZETKAPAY_PAYMENT_KEY);
   const belowMinimum = minOrderAmount !== null && total < minOrderAmount;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -136,13 +139,16 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
         <section className={styles.section}>
           <h2>3. Оплата</h2>
           {paymentAvailable ? (
-            <label className={styles.radio}>
-              <input type="radio" name="payment" value={HUTKO_PAYMENT_KEY} defaultChecked required />
-              <span>
-                <strong>Онлайн-оплата карткою</strong><br />
-                <small>Банківська картка; Apple Pay і Google Pay — якщо вони доступні у платіжній формі</small>
-              </span>
-            </label>
+            <>
+              <label className={styles.radio}>
+                <input type="radio" name="payment" value={ROZETKAPAY_PAYMENT_KEY} defaultChecked required />
+                <span>
+                  <strong>Онлайн-оплата карткою</strong><br />
+                  <small>Visa, Mastercard, ПРОСТІР; Apple Pay і Google Pay — якщо доступні на платіжній сторінці RozetkaPay</small>
+                </span>
+              </label>
+              <CardMarks />
+            </>
           ) : (
             <p className={styles.error}>Онлайн-оплата тимчасово недоступна. Спробуйте пізніше.</p>
           )}
@@ -168,12 +174,25 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
             Ще {formatPrice(amountToFreeShipping(total, freeShippingFrom), "UAH")} — і доставка буде безкоштовною.
           </p>
         ) : null}
+        <div className={styles.summaryRow}>
+          <span>Відправка з Мілана</span>
+          <strong><NextDispatchDate fallback={SCHEDULE_COPY.dispatchOn} /></strong>
+        </div>
+        <p className={styles.lineMeta}>
+          Отримання Новою Поштою — {SCHEDULE_COPY.transit} після відправки, зазвичай {SCHEDULE_COPY.arrivalOn}.
+        </p>
         <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
           <span>До сплати</span><strong>{formatPrice(total, "UAH")}</strong>
         </div>
         {belowMinimum ? (
           <p className={styles.error}>Мінімальна сума — {formatPrice(minOrderAmount ?? 0, "UAH")}</p>
         ) : null}
+        <p className={styles.terms}>
+          Повна сума списується з картки одразу під час оплати. Оплачене замовлення можна скасувати до відправки
+          з Мілана, а товар — повернути протягом 14 днів після отримання.{" "}
+          <Link href="/legal/payment" target="_blank">Умови оплати</Link> ·{" "}
+          <Link href="/returns" target="_blank">Обмін і повернення</Link>
+        </p>
         <label className={styles.consent}>
           <input type="checkbox" required />
           <span>
@@ -184,7 +203,7 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
         <button className={styles.primary} disabled={pending || !paymentAvailable || belowMinimum}>
           {pending ? "Створюємо…" : "Перейти до оплати"}
         </button>
-        <p className={styles.lineMeta}>Після створення замовлення відкриється захищена платіжна сторінка.</p>
+        <p className={styles.lineMeta}>Після створення замовлення відкриється захищена платіжна сторінка RozetkaPay.</p>
       </aside>
     </form>
   );

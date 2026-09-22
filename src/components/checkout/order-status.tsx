@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { formatPrice } from "@/lib/format";
 import type { StoreOrderStatus } from "@/lib/crm/orders";
+import { STORE } from "@/lib/store";
 import styles from "./order-status.module.css";
 
-type Props = { initialOrder: StoreOrderStatus };
+type Props = { initialOrder: StoreOrderStatus; freeShipping: boolean };
 
 const orderCopy = {
   pending: { label: "Замовлення прийнято", text: "Ми отримали ваше замовлення. Після оплати воно потрапить у роботу." },
@@ -30,7 +31,7 @@ function formatDate(value: string): string {
   return Number.isNaN(date.getTime()) ? "—" : new Intl.DateTimeFormat("uk-UA", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
-export function OrderStatus({ initialOrder }: Props) {
+export function OrderStatus({ initialOrder, freeShipping }: Props) {
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -82,9 +83,10 @@ export function OrderStatus({ initialOrder }: Props) {
     }
   }
 
-  const canPay = order.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(order.orderStatus);
+  const paid = order.paymentStatus === "paid";
+  const canPay = !paid && !["cancelled", "refunded"].includes(order.orderStatus);
   // «До сплати» під сумою вже оплаченого замовлення читається як новий рахунок.
-  const amountLabel = order.paymentStatus === "paid" ? "Оплачено"
+  const amountLabel = paid ? "Оплачено"
     : order.paymentStatus === "refunded" ? "Сума замовлення"
       : "До сплати";
   const status = orderCopy[order.orderStatus];
@@ -92,7 +94,7 @@ export function OrderStatus({ initialOrder }: Props) {
     <div className={styles.card} data-clarity-mask="True">
       <div className={styles.topline}>
         <p className="eyebrow">Статус замовлення</p>
-        <button className={styles.refresh} type="button" onClick={() => void refresh()} disabled={loading}>{loading ? "Оновлюємо…" : "Оновити"}</button>
+        <button className={`${styles.refresh} ${styles.noPrint}`} type="button" onClick={() => void refresh()} disabled={loading}>{loading ? "Оновлюємо…" : "Оновити"}</button>
       </div>
       <h1>{status.label}</h1>
       <p className={styles.lead}>{status.text}</p>
@@ -102,17 +104,54 @@ export function OrderStatus({ initialOrder }: Props) {
       </div>
       <dl className={styles.details}>
         <div><dt>Номер замовлення</dt><dd>{order.number ?? order.orderId}</dd></div>
-        <div><dt>{amountLabel}</dt><dd>{formatPrice(Number(order.totalAmount), order.currency)}</dd></div>
         <div><dt>Створено</dt><dd>{formatDate(order.createdAt)}</dd></div>
       </dl>
-      <div className={styles.share}>
+      {/* Після оплати блок працює як квитанція: її можна надрукувати або зберегти в PDF засобами браузера. */}
+      <section className={styles.receipt} aria-labelledby="receipt-title">
+        <div className={styles.receiptHead}>
+          <h2 id="receipt-title">{paid ? "Квитанція про оплату" : "Склад замовлення"}</h2>
+          {paid ? (
+            <button className={`${styles.print} ${styles.noPrint}`} type="button" onClick={() => window.print()}>
+              Зберегти PDF / Надрукувати
+            </button>
+          ) : null}
+        </div>
+        {order.items.length ? (
+          <table className={styles.items}>
+            <thead>
+              <tr><th scope="col">Товар</th><th scope="col">Кількість і ціна</th><th scope="col">Сума</th></tr>
+            </thead>
+            <tbody>
+              {order.items.map((item, index) => (
+                <tr key={`${item.sku ?? item.name}-${index}`}>
+                  <td>{item.name}{item.sku ? <small>Артикул {item.sku}</small> : null}</td>
+                  <td>{item.quantity} × {formatPrice(item.unitPrice, order.currency)}</td>
+                  <td>{formatPrice(item.total, order.currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
+        <dl className={styles.details}>
+          <div><dt>Доставка Новою Поштою</dt><dd>{freeShipping ? "Безкоштовно" : "За тарифами перевізника, при отриманні"}</dd></div>
+          <div><dt>{amountLabel}</dt><dd>{formatPrice(Number(order.totalAmount), order.currency)}</dd></div>
+          {paid ? (
+            <>
+              <div><dt>Дата оплати</dt><dd>{order.paidAt ? formatDate(order.paidAt) : "—"}</dd></div>
+              <div><dt>Спосіб оплати</dt><dd>Онлайн-оплата карткою, RozetkaPay</dd></div>
+              <div><dt>Продавець</dt><dd>{STORE.legalName}, РНОКПП {STORE.taxId}</dd></div>
+            </>
+          ) : null}
+        </dl>
+      </section>
+      <div className={`${styles.share} ${styles.noPrint}`}>
         <span>Збережіть це посилання, щоб повернутися до статусу замовлення.</span>
         <button type="button" onClick={() => void copyLink()}>{copied ? "Скопійовано" : "Скопіювати посилання"}</button>
       </div>
-      {canPay ? <button className="btn btn--primary" type="button" onClick={() => void pay()} disabled={loading}>{order.paymentStatus === "failed" ? "Спробувати оплатити ще раз" : "Перейти до оплати"}</button> : null}
+      {canPay ? <button className={`btn btn--primary ${styles.noPrint}`} type="button" onClick={() => void pay()} disabled={loading}>{order.paymentStatus === "failed" ? "Спробувати оплатити ще раз" : "Перейти до оплати"}</button> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
-      {order.paymentStatus === "pending" ? <p className={styles.note}>Після оплати сторінка оновиться автоматично. Не створюйте нове замовлення.</p> : null}
-      <p className={styles.contact}>Потрібна допомога? <Link href="/contacts"><u>Зв’яжіться з нами</u></Link>.</p>
+      {order.paymentStatus === "pending" ? <p className={`${styles.note} ${styles.noPrint}`}>Після оплати сторінка оновиться автоматично. Не створюйте нове замовлення.</p> : null}
+      <p className={`${styles.contact} ${styles.noPrint}`}>Потрібна допомога? <Link href="/contacts"><u>Зв’яжіться з нами</u></Link>.</p>
     </div>
   );
 }

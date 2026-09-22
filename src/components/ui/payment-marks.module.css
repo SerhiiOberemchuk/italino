@@ -1,0 +1,23 @@
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.marks > span {
+  display: flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--ink-10);
+  border-radius: 6px;
+  background: var(--white);
+}
+
+.marks svg,
+.marks img {
+  display: block;
+  width: auto;
+  height: 14px;
+}

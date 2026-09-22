@@ -28,3 +28,21 @@
 .card > .btn { width: 100%; }
 .note, .contact { margin-top: 16px; color: var(--ink-70); font-size: 13px; line-height: 1.5; }
 .error { margin-top: 16px; padding: 12px; border-radius: 10px; background: #ffe8e2; color: #8a2415; }
+
+.receipt { margin-bottom: 8px; }
+.receiptHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 14px; }
+.receiptHead h2 { font-family: var(--font-display); font-size: 26px; font-weight: 500; }
+.print { padding: 7px 12px; border: 1px solid var(--ink-10); border-radius: var(--radius-pill); background: var(--white); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.print:hover { border-color: var(--ink); }
+.items { width: 100%; border-collapse: collapse; font-size: 14px; }
+.items th { padding: 0 0 8px; border-bottom: 1px solid var(--ink-10); color: var(--ink-50); font-size: 12px; font-weight: 600; text-align: left; }
+.items td { padding: 12px 0; border-bottom: 1px solid var(--ink-10); vertical-align: top; line-height: 1.45; }
+.items th:not(:first-child), .items td:not(:first-child) { padding-left: 12px; text-align: right; white-space: nowrap; }
+.items td:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+.items small { display: block; margin-top: 2px; color: var(--ink-50); font-size: 12px; }
+
+/* Друк і «Зберегти як PDF»: лише квитанція, без кнопок; шапку й футер сайту ховає globals.css. */
+@media print {
+  .card { margin: 0; padding: 0; border: 0; border-radius: 0; }
+  .noPrint { display: none !important; }
+}

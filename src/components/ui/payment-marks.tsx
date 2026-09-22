@@ -1,14 +1,37 @@
+import Image from "next/image";
 import type { SVGProps } from "react";
+import styles from "./payment-marks.module.css";
 
 /*
- * Знаки платіжних систем для футера — hutko вимагає саме логотипи Visa
- * й Mastercard, а не текстові підписи. Кольорові, тож окремо від контурних
- * іконок у icons.tsx.
+ * Знаки платіжних систем — RozetkaPay вимагає на сайті логотипи Visa,
+ * Mastercard і ПРОСТІР, а не текстові підписи. Кольорові, тож окремо від
+ * контурних іконок у icons.tsx.
  *
  * Visa — контур із Simple Icons (CC0), обрізаний до словесного знака;
- * Mastercard — два кола з перетином у фірмових кольорах.
+ * Mastercard — два кола з перетином у фірмових кольорах; ПРОСТІР — офіційний
+ * PNG «PROSTIR e-Secure» з пакета логотипів, який видає RozetkaPay (векторної
+ * версії в пакеті немає, тож знак не перемальовуємо).
  */
 type MarkProps = SVGProps<SVGSVGElement>;
+
+/** Пропорції офіційного файлу 1656×190; розмір у верстці задає CSS висотою. */
+export function ProstirMark({ className }: { className?: string }) {
+  return <Image className={className} src="/payment/prostir.png" alt="ПРОСТІР" width={122} height={14} />;
+}
+
+/**
+ * Рядок логотипів карток для сторінок оплати й оформлення замовлення.
+ * Не `ul`: у юридичних сторінках `.section ul` перетворив би рядок на сітку.
+ */
+export function CardMarks() {
+  return (
+    <div className={styles.marks} role="list" aria-label="Картки до оплати">
+      <span role="listitem"><VisaMark /></span>
+      <span role="listitem"><MastercardMark /></span>
+      <span role="listitem"><ProstirMark /></span>
+    </div>
+  );
+}
 
 export function VisaMark(props: MarkProps) {
   return (

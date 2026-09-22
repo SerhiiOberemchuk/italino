@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { MailIcon, PhoneIcon } from "@/components/ui/icons";
+import { ClockIcon, MailIcon, PhoneIcon } from "@/components/ui/icons";
 import { STORE } from "@/lib/store";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ObriymMark } from "@/components/brand/obriym-mark";
-import { MastercardMark, VisaMark } from "@/components/ui/payment-marks";
+import { MastercardMark, ProstirMark, VisaMark } from "@/components/ui/payment-marks";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import styles from "./site-footer.module.css";
 
@@ -36,6 +36,7 @@ const COLUMNS = [
     links: [
       { label: "Контакти", href: "/contacts" },
       { label: "Публічна оферта", href: "/legal/offer" },
+      { label: "Умови використання", href: "/legal/terms" },
       { label: "Політика конфіденційності", href: "/legal/privacy" },
     ],
   },
@@ -63,6 +64,9 @@ export function SiteFooter() {
               <a href={`mailto:${STORE.email}`}>
                 <MailIcon /> {STORE.email}
               </a>
+            </li>
+            <li className={styles.hours}>
+              <ClockIcon /> {STORE.hours[0].toUpperCase() + STORE.hours.slice(1)}
             </li>
           </ul>
         </div>
@@ -109,6 +113,9 @@ export function SiteFooter() {
               <Link href="/legal/offer">Публічна оферта</Link>
             </li>
             <li>
+              <Link href="/legal/terms">Умови використання</Link>
+            </li>
+            <li>
               <Link href="/legal/privacy">Політика конфіденційності</Link>
             </li>
             <li>
@@ -118,6 +125,7 @@ export function SiteFooter() {
           <ul className={styles.pay} aria-label="Способи оплати">
             <li className={styles.payMark}><VisaMark /></li>
             <li className={styles.payMark}><MastercardMark /></li>
+            <li className={styles.payMark}><ProstirMark /></li>
             <li>APPLE PAY</li>
             <li>GOOGLE PAY</li>
           </ul>

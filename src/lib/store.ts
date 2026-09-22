@@ -9,8 +9,9 @@ export const STORE = {
   phone: "+380 97 044 72 29",
   phoneHref: "tel:+380970447229",
   email: "serhiioberemchuk@gmail.com",
-  paymentProvider: "Hutko",
+  hours: "щодня з 09:00 до 21:00",
+  paymentProvider: "RozetkaPay",
 } as const;
 
-export const HUTKO_PAYMENT_KEY = "hutko";
+export const ROZETKAPAY_PAYMENT_KEY = "rozetkapay";
 

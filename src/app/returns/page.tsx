@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { STORE } from "@/lib/store";
 import styles from "../legal/legal.module.css";
 
@@ -17,10 +18,19 @@ export default function Page() {
       <header className={styles.hero}>
         <p className="eyebrow">Покупцям</p>
         <h1>Обмін і повернення</h1>
-        <p className={styles.updated}>Редакція від 21 вересня 2026 року</p>
+        <p className={styles.updated}>Редакція від 22 вересня 2026 року</p>
       </header>
 
       <div className={styles.content}>
+        <section className={styles.section}>
+          <h2>Скасування до відправки</h2>
+          <p>
+            Оплачене замовлення можна скасувати, доки його не відправлено зі складу в Мілані. Напишіть на{" "}
+            {STORE.email} або зателефонуйте {STORE.phone} і вкажіть номер замовлення. Усю сплачену суму
+            повертаємо на ту саму картку не пізніше 7 днів з дня звернення.
+          </p>
+        </section>
+
         <section className={styles.section}>
           <h2>Відмова від покупки протягом 14 днів</h2>
           <p>
@@ -47,6 +57,10 @@ export default function Page() {
             передбачені статтею 8 Закону України «Про захист прав споживачів».
           </p>
           <p>Витрати на повернення товару з недоліком або помилкою комплектації несе продавець.</p>
+          <p>
+            Умови гарантії — у розділі «Якість і гарантія»{" "}
+            <Link href="/legal/offer#guarantee">публічної оферти</Link>.
+          </p>
         </section>
 
         <section className={styles.section}>

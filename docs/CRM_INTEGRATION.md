@@ -178,12 +178,12 @@ CRM **не конвертує валюти**. Sipec віддає ціну дил
 - `notes` — сайт записує дату поставки, у яку потрапило замовлення (див.
   DELIVERY.md).
 - Перед checkout читаємо `GET /capabilities`. Магазин приймає онлайн-оплату
-  лише якщо CRM повернула `hutko` з `paymentLink: true`; інші вбудовані або
+  лише якщо CRM повернула `rozetkapay` з `paymentLink: true`; інші вбудовані або
   адаптерні способи на вітрині не показуються.
 - Після створення замовлення сайт викликає
-  `POST /orders/{externalId}/payment-link` з `provider: "hutko"`, `ttl: "24h"`
+  `POST /orders/{externalId}/payment-link` з `provider: "rozetkapay"`, `ttl: "24h"`
   та HTTPS `returnUrl` сторінки успішного замовлення. Покупця одразу
-  перенаправляємо на hosted checkout Hutko. Merchant ID і payment key
+  перенаправляємо на hosted checkout RozetkaPay. Логін і пароль мерчанта
   зберігаються тільки в зашифрованій конфігурації адаптера CRM.
 - Вибір міста й відділення НП — через `GET /carriers/nova_poshta/cities?q=` і
   `.../warehouses?cityRef=` (працює, якщо у workspace підключено адаптер НП).
@@ -231,7 +231,8 @@ webhook-а — `cacheLife("minutes")` для товарів і `("hours")` дл�
 5. Перевірити реальні товари та ціни на головній. Токен не записувати в `.env.example`.
 6. Перевірити на тестовому workspace: каталог → картка → checkout → замовлення
    в `/admin/orders` CRM.
-7. У CRM створити адаптер Hutko, зберегти merchant ID і payment key, а
-   згенерований callback URL додати в Hutko. Переконатися, що `/capabilities`
-   повертає `{ key: "hutko", paymentLink: true }`, і провести контрольний
+7. У CRM створити адаптер RozetkaPay і зберегти логін і пароль мерчанта
+   (їх видає підтримка RozetkaPay); callback URL CRM передає в кожному
+   платежі сама. Переконатися, що `/capabilities` повертає
+   `{ key: "rozetkapay", paymentLink: true }`, і провести контрольний
    платіж із перевіркою підписаного callback та статусу оплати замовлення.
