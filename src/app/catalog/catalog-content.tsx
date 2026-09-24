@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/catalog/product-card";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { toProductCards } from "@/lib/catalog/product-cards";
 import { getStoreProducts } from "@/lib/crm/catalog";
+import type { CrmProduct } from "@/lib/crm/types";
 import styles from "../shop.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -27,9 +28,10 @@ type Props = {
   searchParams: Promise<SearchParams>;
   categoryIds?: readonly string[];
   basePath?: string;
+  products?: readonly CrmProduct[];
 };
 
-export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog" }: Props) {
+export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog", products }: Props) {
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim().toLocaleLowerCase("uk") : "";
   const brand = typeof params.brand === "string" ? params.brand : "";
@@ -38,7 +40,7 @@ export async function CatalogContent({ searchParams, categoryIds, basePath = "/c
 
   // Каталог приходить повністю (усі сторінки CRM), тому пошук, фільтри
   // й сортування працюють по всьому асортименту, а не по першій сотні.
-  const all = await getStoreProducts();
+  const all = products ?? await getStoreProducts();
   const brands = [...new Set(all.flatMap((p) => p.brand?.name ? [p.brand.name] : []))].sort();
   const allowedCategoryIds = categoryIds ? new Set(categoryIds) : null;
 

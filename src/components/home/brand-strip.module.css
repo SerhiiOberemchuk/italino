@@ -16,7 +16,7 @@
 
 @media (min-width: 768px) {
   .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 }
 
@@ -48,6 +48,15 @@
 .media img {
   object-fit: cover;
   transition: transform 0.6s var(--ease);
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: var(--font-display);
+  font-size: 72px;
+  color: var(--ink-50);
 }
 
 .card:hover .media img {

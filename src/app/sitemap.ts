@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getStoreCategories, getStoreProducts } from "@/lib/crm/catalog";
-import { categoryKey } from "@/lib/catalog/categories";
+import { categoryKey, usedCategories } from "@/lib/catalog/categories";
 import { publicSiteUrl } from "@/lib/site-url";
 
 const STATIC_PATHS = [
@@ -21,21 +21,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    for (const category of await getStoreCategories()) {
+    const [categories, products] = await Promise.all([getStoreCategories(), getStoreProducts()]);
+    for (const category of usedCategories(categories, products)) {
       entries.push({
         url: url(`/catalog/${encodeURIComponent(categoryKey(category))}`),
         changeFrequency: "weekly",
         priority: 0.8,
       });
     }
-  } catch {
-    // Без CRM віддаємо статичну частину мапи сайту.
-  }
 
-  // Товари — з кешованого каталогу; недоступність CRM не має ламати збірку.
-  try {
     const models = new Map<string, string>();
-    for (const product of await getStoreProducts()) {
+    for (const product of products) {
       const key = product.productGroupId ?? product.id;
       if (!models.has(key)) models.set(key, product.updatedAt);
     }

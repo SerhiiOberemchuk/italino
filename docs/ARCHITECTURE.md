@@ -46,8 +46,9 @@
    CRM. Між API та UI — тонкий шар `src/lib/catalog/*` (наприклад,
    `toProductCards`, який групує рядки-розміри в одну картку).
 5. **Живий каталог із CRM.** Головна читає товари складу ITALINO та дерево
-   категорій CRM. Навігація, сторінки категорій, sitemap і товарні зображення
-   головної будуються з цих даних; помилки CRM не підміняються мок-даними.
+   категорій CRM. Навігація, бренди, сторінки категорій, sitemap і товарні
+   зображення головної будуються лише з категорій та брендів, реально використаних
+   видимими товарами цього складу; помилки CRM не підміняються мок-даними.
 6. **Нові залежності — лише з погодженням.**
 
 ## Структура коду
@@ -70,10 +71,9 @@ src/
     crm/types.ts         типи публічного API CRM (звужені до потрібних полів)
     crm/client.ts        server-only fetch: base URL, Bearer, timeout, помилки
     crm/catalog.ts       товари складу ITALINO, "use cache", cacheLife("minutes")
-    catalog/             view-моделі: product-cards.ts
+    catalog/             view-моделі: product-cards.ts, categories.ts, brands.ts
     shipping/schedule.ts розклад поставок, nextCutoff/nextDispatch, форматування дат
     format.ts            formatPrice (UAH, uk-UA)
-    mock/home.ts         редакційні бренд-блоки головної (не каталог)
 docs/                    документація
 ```
 

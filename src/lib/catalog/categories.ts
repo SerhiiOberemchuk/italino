@@ -48,6 +48,32 @@ export function rootCategories(categories: readonly CrmCategory[]): CrmCategory[
   return categories.filter((category) => !category.parentId || !ids.has(category.parentId));
 }
 
+/**
+ * Залишає лише категорії, до яких прив'язані товари вітрини, та їхніх предків.
+ * Предки потрібні, щоб вкладена категорія не випадала з дерева навігації.
+ */
+export function usedCategories(
+  categories: readonly CrmCategory[],
+  products: readonly CrmProduct[],
+): CrmCategory[] {
+  const byId = new Map(categories.map((category) => [category.id, category]));
+  const usedIds = new Set(products.flatMap((product) => (
+    product.category?.id ? [product.category.id] : []
+  )));
+
+  for (const categoryId of [...usedIds]) {
+    let category = byId.get(categoryId);
+    const visited = new Set<string>();
+    while (category?.parentId && !visited.has(category.id)) {
+      visited.add(category.id);
+      usedIds.add(category.parentId);
+      category = byId.get(category.parentId);
+    }
+  }
+
+  return categories.filter((category) => usedIds.has(category.id));
+}
+
 export function categoryLinks(
   categories: readonly CrmCategory[],
   rootsOnly = false,

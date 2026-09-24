@@ -13,7 +13,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { StoreHydrator } from "@/components/store-hydrator";
 import { publicSiteUrl } from "@/lib/site-url";
 import { STORE } from "@/lib/store";
-import { getStoreCategories } from "@/lib/crm/catalog";
+import { usedCategories } from "@/lib/catalog/categories";
+import { getStoreCategories, getStoreProducts } from "@/lib/crm/catalog";
 import type { CrmCategory } from "@/lib/crm/types";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
@@ -76,25 +77,25 @@ export const viewport: Viewport = {
   themeColor: "#fff7ee",
 };
 
+async function loadNavigationCategories(): Promise<CrmCategory[]> {
+  try {
+    const [categories, products] = await Promise.all([getStoreCategories(), getStoreProducts()]);
+    return usedCategories(categories, products);
+  } catch (error) {
+    console.error("[CRM navigation]", error instanceof Error ? error.message : "Unknown error");
+    return [];
+  }
+}
+
 async function LiveSiteHeader() {
   await connection();
-  let categories: CrmCategory[] = [];
-  try {
-    categories = await getStoreCategories();
-  } catch (error) {
-    console.error("[CRM categories]", error instanceof Error ? error.message : "Unknown error");
-  }
+  const categories = await loadNavigationCategories();
   return <SiteHeader categories={categories} />;
 }
 
 async function LiveSiteFooter() {
   await connection();
-  let categories: CrmCategory[] = [];
-  try {
-    categories = await getStoreCategories();
-  } catch (error) {
-    console.error("[CRM categories]", error instanceof Error ? error.message : "Unknown error");
-  }
+  const categories = await loadNavigationCategories();
   return <SiteFooter categories={categories} />;
 }
 

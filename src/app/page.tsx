@@ -7,8 +7,8 @@ import { Newsletter } from "@/components/home/newsletter";
 import { ProductRail } from "@/components/home/product-rail";
 import { PromoSplit } from "@/components/home/promo-split";
 import { WhyItalino } from "@/components/home/why-italino";
-import { homeBrands } from "@/lib/mock/home";
-import { homeCategories, type HomeCategory } from "@/lib/catalog/categories";
+import { catalogBrands } from "@/lib/catalog/brands";
+import { homeCategories, type HomeCategory, usedCategories } from "@/lib/catalog/categories";
 import { toProductCards } from "@/lib/catalog/product-cards";
 import { getStoreCategories, getStoreProducts } from "@/lib/crm/catalog";
 import { connection } from "next/server";
@@ -28,7 +28,9 @@ export default async function HomePage() {
 
   const categories = categoryResult.status === "fulfilled" ? categoryResult.value : [];
   const products = productResult.status === "fulfilled" ? productResult.value : [];
-  const categoryCards = homeCategories(categories, products);
+  const visibleCategories = usedCategories(categories, products);
+  const categoryCards = homeCategories(visibleCategories, products);
+  const brands = catalogBrands(products);
   const showcase = categoryCards.filter(
     (category): category is HomeCategory & { image: string } => category.image !== null,
   );
@@ -45,7 +47,7 @@ export default async function HomePage() {
       {/* Спершу асортимент: hero → категорії → товари → бренди. Доставку пояснюємо нижче. */}
       <Hero
         showcase={showcase}
-        categoryCount={categories.length}
+        categoryCount={visibleCategories.length}
         modelCount={productCards.length}
         productCount={products.length}
       />
@@ -61,7 +63,7 @@ export default async function HomePage() {
           : "Незабаром тут з’являться товари."
         }
       />
-      <BrandStrip brands={homeBrands} />
+      <BrandStrip brands={brands} />
       <PromoSplit saleImage={saleImage} businessImage={businessImage} />
       <DispatchBanner />
       <HowItWorks />

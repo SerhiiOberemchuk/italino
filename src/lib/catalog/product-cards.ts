@@ -40,7 +40,7 @@ export function sortSizes(sizes: Iterable<string>): string[] {
   );
 }
 
-export function toProductCards(products: CrmProduct[]): ProductCard[] {
+export function toProductCards(products: readonly CrmProduct[]): ProductCard[] {
   const groups = new Map<string, CrmProduct[]>();
   for (const product of products) {
     if (product.status !== "active") continue;
