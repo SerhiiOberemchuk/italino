@@ -1,24 +1,26 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { CatalogContent } from "../catalog-content";
+import { categoryBranchIds, findCategory } from "@/lib/catalog/categories";
+import { getStoreCategories } from "@/lib/crm/catalog";
 import styles from "../../shop.module.css";
 
-const LABELS: Record<string, string> = {
-  bags: "Сумки та рюкзаки", drinkware: "Пляшки та кухлі", clothing: "Одяг",
-  hats: "Кепки та аксесуари", office: "Офіс і канцелярія", tech: "Техніка",
-  home: "Дім і кухня", travel: "Подорожі та спорт",
-};
-
 async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[category]">) {
-  const { category } = await params;
+  const { category: key } = await params;
+  const categories = await getStoreCategories();
+  const category = findCategory(categories, key);
+  if (!category) notFound();
+
+  const categoryIds = [...categoryBranchIds(categories, category.id)];
   return (
     <>
       <div className={styles.hero}>
-        <div><p className="eyebrow">Каталог</p><h1>{LABELS[category] ?? category}</h1></div>
+        <div><p className="eyebrow">Каталог</p><h1>{category.name}</h1></div>
       </div>
       <CatalogContent
         searchParams={searchParams}
-        category={category}
-        basePath={`/catalog/${encodeURIComponent(category)}`}
+        categoryIds={categoryIds}
+        basePath={`/catalog/${encodeURIComponent(key)}`}
       />
     </>
   );

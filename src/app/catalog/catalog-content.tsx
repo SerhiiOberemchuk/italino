@@ -10,13 +10,6 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 const PAGE_SIZE = 24;
 
-const CATEGORY_TERMS: Record<string, string[]> = {
-  bags: ["рюкзак", "сумк"], drinkware: ["пляш", "кухл", "термо"],
-  clothing: ["одяг", "худі", "футбол", "поло"], hats: ["кеп", "шап"],
-  office: ["офіс", "канцел"], tech: ["технік", "електрон"],
-  home: ["дім", "кухн"], travel: ["подорож", "спорт", "рюкзак"],
-};
-
 /** Поточні параметри плюс потрібна сторінка; `page=1` в адресу не пишемо. */
 function pageHref(basePath: string, params: SearchParams, page: number): Route {
   const search = new URLSearchParams();
@@ -32,11 +25,11 @@ function pageHref(basePath: string, params: SearchParams, page: number): Route {
 
 type Props = {
   searchParams: Promise<SearchParams>;
-  category?: string;
+  categoryIds?: readonly string[];
   basePath?: string;
 };
 
-export async function CatalogContent({ searchParams, category, basePath = "/catalog" }: Props) {
+export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog" }: Props) {
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim().toLocaleLowerCase("uk") : "";
   const brand = typeof params.brand === "string" ? params.brand : "";
@@ -47,14 +40,14 @@ export async function CatalogContent({ searchParams, category, basePath = "/cata
   // й сортування працюють по всьому асортименту, а не по першій сотні.
   const all = await getStoreProducts();
   const brands = [...new Set(all.flatMap((p) => p.brand?.name ? [p.brand.name] : []))].sort();
-  const terms = category ? CATEGORY_TERMS[category] ?? [category.toLocaleLowerCase("uk")] : [];
+  const allowedCategoryIds = categoryIds ? new Set(categoryIds) : null;
 
   const filtered = all.filter((p) => {
     const haystack = `${p.name} ${p.sku ?? ""} ${p.brand?.name ?? ""} ${p.category?.name ?? ""}`.toLocaleLowerCase("uk");
     return (!query || haystack.includes(query))
       && (!brand || p.brand?.name === brand)
       && (!discounted || (p.compareAtPrice ?? 0) > (p.price ?? Infinity))
-      && (!terms.length || terms.some((term) => haystack.includes(term)));
+      && (!allowedCategoryIds || (p.category?.id ? allowedCategoryIds.has(p.category.id) : false));
   });
 
   const cards = toProductCards(filtered).sort((a, b) =>

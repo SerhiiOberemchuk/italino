@@ -4,20 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { MenuIcon } from "@/components/ui/icons";
+import type { CatalogCategoryLink } from "@/lib/catalog/categories";
 import styles from "./mobile-menu.module.css";
 
-// `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
-// Повне дерево категорій — на телефоні це єдина навігація, футер користувач може не догортати.
-const CATALOG = [
-  { label: "Усі товари", href: "/catalog" },
-  { label: "Сумки та рюкзаки", href: "/catalog/bags" },
-  { label: "Пляшки та кухлі", href: "/catalog/drinkware" },
-  { label: "Одяг", href: "/catalog/clothing" },
-  { label: "Кепки та аксесуари", href: "/catalog/hats" },
-  { label: "Офіс і канцелярія", href: "/catalog/office" },
-  { label: "Техніка", href: "/catalog/tech" },
-  { label: "Дім і кухня", href: "/catalog/home" },
-  { label: "Подорожі та спорт", href: "/catalog/travel" },
+const CATALOG_LINKS = [
   { label: "Бренди", href: "/catalog#catalog-filters" },
   { label: "Sale", href: "/catalog?discounted=true" },
 ] as const;
@@ -31,7 +21,7 @@ const SERVICE = [
   { label: "Контакти", href: "/contacts" },
 ] as const;
 
-export function MobileMenu() {
+export function MobileMenu({ categories }: { categories: readonly CatalogCategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -86,7 +76,18 @@ export function MobileMenu() {
 
           <div className={styles.body}>
             <p className={styles.groupTitle}>Каталог</p>
-            {CATALOG.map((item) => (
+            <Link href="/catalog" onClick={() => setOpen(false)}>Усі товари</Link>
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={category.href}
+                style={{ paddingInlineStart: `${4 + category.depth * 16}px` }}
+                onClick={() => setOpen(false)}
+              >
+                {category.name}
+              </Link>
+            ))}
+            {CATALOG_LINKS.map((item) => (
               <Link key={item.label} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>
             ))}
 

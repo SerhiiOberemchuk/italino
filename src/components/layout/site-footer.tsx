@@ -5,24 +5,11 @@ import { BrandLogo } from "@/components/brand/brand-logo";
 import { ObriymMark } from "@/components/brand/obriym-mark";
 import { MastercardMark, ProstirMark, VisaMark } from "@/components/ui/payment-marks";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
+import { categoryLinks } from "@/lib/catalog/categories";
+import type { CrmCategory } from "@/lib/crm/types";
 import styles from "./site-footer.module.css";
 
-// `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
 const COLUMNS = [
-  {
-    title: "Каталог",
-    links: [
-      { label: "Сумки та рюкзаки", href: "/catalog/bags" },
-      { label: "Пляшки та кухлі", href: "/catalog/drinkware" },
-      { label: "Одяг", href: "/catalog/clothing" },
-      { label: "Кепки та аксесуари", href: "/catalog/hats" },
-      { label: "Офіс і канцелярія", href: "/catalog/office" },
-      { label: "Техніка", href: "/catalog/tech" },
-      { label: "Дім і кухня", href: "/catalog/home" },
-      { label: "Подорожі та спорт", href: "/catalog/travel" },
-      { label: "Sale", href: "/catalog?discounted=true" },
-    ],
-  },
   {
     title: "Покупцям",
     links: [
@@ -42,7 +29,9 @@ const COLUMNS = [
   },
 ] as const;
 
-export function SiteFooter() {
+export function SiteFooter({ categories }: { categories: readonly CrmCategory[] }) {
+  const catalogLinks = categoryLinks(categories, true);
+
   return (
     <footer className={styles.footer}>
       <div className={`wrap ${styles.top}`}>
@@ -70,6 +59,16 @@ export function SiteFooter() {
             </li>
           </ul>
         </div>
+
+        <nav className={styles.col} aria-label="Каталог">
+          <h4>Каталог</h4>
+          <ul>
+            {catalogLinks.map((category) => (
+              <li key={category.id}><Link href={category.href}>{category.name}</Link></li>
+            ))}
+            <li><Link href="/catalog?discounted=true">Sale</Link></li>
+          </ul>
+        </nav>
 
         {COLUMNS.map((column) => (
           <nav key={column.title} className={styles.col} aria-label={column.title}>

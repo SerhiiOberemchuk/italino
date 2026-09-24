@@ -1,9 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { homeImages } from "@/lib/mock/home";
 import styles from "./promo-split.module.css";
 
-export function PromoSplit() {
+export function PromoSplit({ saleImage, businessImage }: { saleImage: string | null; businessImage: string | null }) {
   return (
     <section className={`wrap ${styles.section}`} aria-label="Sale та пропозиція для бізнесу">
       <div className={styles.grid}>
@@ -17,9 +16,11 @@ export function PromoSplit() {
             </p>
             <span className={`btn btn--ghost ${styles.btn}`}>Дивитися sale</span>
           </div>
-          <div className={styles.img} aria-hidden="true">
-            <Image src={homeImages.promoSale} alt="" fill sizes="280px" />
-          </div>
+          {saleImage ? (
+            <div className={styles.img} aria-hidden="true">
+              <Image src={saleImage} alt="" fill sizes="280px" />
+            </div>
+          ) : null}
         </Link>
 
         <Link href="/contacts" className={`${styles.tile} ${styles.tileBusiness}`}>
@@ -32,9 +33,11 @@ export function PromoSplit() {
             </p>
             <span className={`btn btn--ghost ${styles.btn}`}>Отримати пропозицію</span>
           </div>
-          <div className={styles.img} aria-hidden="true">
-            <Image src={homeImages.promoBusiness} alt="" fill sizes="280px" />
-          </div>
+          {businessImage ? (
+            <div className={styles.img} aria-hidden="true">
+              <Image src={businessImage} alt="" fill sizes="280px" />
+            </div>
+          ) : null}
         </Link>
       </div>
     </section>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BuyBox } from "@/components/catalog/buy-box";
-import { getFreeShippingThreshold, getProductVariants, getStoreProducts } from "@/lib/crm/catalog";
+import { getFreeShippingThreshold, getProductVariants } from "@/lib/crm/catalog";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { NextDispatchDate } from "@/components/home/dispatch-clock";
 import { formatThreshold } from "@/lib/shipping/free-shipping";
@@ -21,14 +21,6 @@ function externalUrl(value: string): string | null {
 
 function attributeLinkLabel(name: string): string {
   return name.toLocaleLowerCase("uk").includes("техніч") ? "Технічний лист" : "Відкрити посилання";
-}
-
-export async function generateStaticParams() {
-  try {
-    return (await getStoreProducts()).map((p) => ({ slug: p.productGroupId ?? p.id }));
-  } catch {
-    return [];
-  }
 }
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {

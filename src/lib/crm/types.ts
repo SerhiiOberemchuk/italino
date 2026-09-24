@@ -59,6 +59,8 @@ export type CrmCategory = {
   parentId: string | null;
 };
 
+export type CrmCategoryList = { data: CrmCategory[] };
+
 export type CrmCollection = {
   id: string;
   slug: string;

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRightIcon } from "@/components/ui/icons";
-import type { HomeCategory } from "@/lib/mock/home";
+import type { HomeCategory } from "@/lib/catalog/categories";
 import styles from "./category-tiles.module.css";
 
 const TINT_CLASS: Record<HomeCategory["tint"], string> = {
@@ -13,6 +13,8 @@ const TINT_CLASS: Record<HomeCategory["tint"], string> = {
 };
 
 export function CategoryTiles({ categories }: { categories: readonly HomeCategory[] }) {
+  if (!categories.length) return null;
+
   return (
     <section className={`wrap ${styles.section}`} aria-labelledby="cats-title">
       <div className="section-head">
@@ -30,19 +32,21 @@ export function CategoryTiles({ categories }: { categories: readonly HomeCategor
       <div className={styles.grid}>
         {categories.map((category) => (
           <Link
-            key={category.slug}
+            key={category.id}
             href={category.href}
             className={`${styles.tile} ${TINT_CLASS[category.tint]}`}
           >
-            <span className={styles.imgWrap}>
-              <Image
-                src={category.image}
-                alt=""
-                fill
-                className={styles.img}
-                sizes="(min-width: 768px) 25vw, 50vw"
-              />
-            </span>
+            {category.image ? (
+              <span className={styles.imgWrap}>
+                <Image
+                  src={category.image}
+                  alt=""
+                  fill
+                  className={styles.img}
+                  sizes="(min-width: 768px) 25vw, 50vw"
+                />
+              </span>
+            ) : null}
             <span className={styles.label}>
               <span className={styles.name}>
                 {category.name}

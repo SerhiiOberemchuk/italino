@@ -2,12 +2,16 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 import { crmGet, CrmError } from "./client";
-import type { CrmCapabilities, CrmProduct, CrmProductList } from "./types";
+import type {
+  CrmCapabilities,
+  CrmCategory,
+  CrmCategoryList,
+  CrmProduct,
+  CrmProductList,
+} from "./types";
 
 /** Максимум CRM: 100 позицій на сторінку. */
 const PER_PAGE = 100;
-/** Стеля на кількість запитів за один прохід — щоб виріс каталог, а не час відповіді. */
-const MAX_PAGES = 20;
 
 function warehouseId(): string {
   const value = process.env.OBRIYM_WAREHOUSE_ID?.trim();
@@ -24,7 +28,7 @@ async function fetchStoreProducts(sort?: string): Promise<CrmProduct[]> {
   const id = warehouseId();
   const products: CrmProduct[] = [];
 
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
+  for (let page = 1; ; page += 1) {
     const result = await crmGet<CrmProductList>("products", {
       warehouseId: id,
       perPage: PER_PAGE,
@@ -34,31 +38,16 @@ async function fetchStoreProducts(sort?: string): Promise<CrmProduct[]> {
       ...(sort ? { sort } : {}),
     });
     if (!Array.isArray(result?.data)) throw new CrmError("INVALID_PRODUCT_LIST");
+    if (!Number.isInteger(result.pagination?.total) || result.pagination.total < 0) {
+      throw new CrmError("INVALID_PRODUCT_PAGINATION");
+    }
     products.push(...result.data);
 
-    const total = result.pagination?.total;
-    if (result.data.length < PER_PAGE || (typeof total === "number" && products.length >= total)) break;
+    if (products.length >= result.pagination.total) break;
+    if (result.data.length === 0) throw new CrmError("INCOMPLETE_PRODUCT_LIST");
   }
 
   return products;
-}
-
-/** Обмежена добірка для головної: лише перша сторінка новинок. */
-export async function getHomeProducts() {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("catalog", "products");
-
-  const result = await crmGet<CrmProductList>("products", {
-    warehouseId: warehouseId(),
-    perPage: PER_PAGE,
-    page: 1,
-    sort: "newest",
-    status: "active",
-    storefrontVisibility: "visible",
-  });
-  if (!Array.isArray(result?.data)) throw new CrmError("INVALID_PRODUCT_LIST");
-  return result.data;
 }
 
 /** Каталог для перегляду: кешований зріз, оновлюється за тегом `products`. */
@@ -66,7 +55,23 @@ export async function getStoreProducts() {
   "use cache";
   cacheLife("minutes");
   cacheTag("catalog", "products");
-  return fetchStoreProducts();
+  return fetchStoreProducts("newest");
+}
+
+/** Категорії вітрини з CRM. Порядок відповіді CRM зберігається для навігації. */
+export async function getStoreCategories(): Promise<CrmCategory[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("catalog", "categories");
+
+  const result = await crmGet<CrmCategoryList>("categories");
+  if (!Array.isArray(result?.data)) throw new CrmError("INVALID_CATEGORY_LIST");
+  return result.data.filter((category) => (
+    typeof category?.id === "string"
+    && typeof category?.name === "string"
+    && category.id.trim().length > 0
+    && category.name.trim().length > 0
+  ));
 }
 
 /**

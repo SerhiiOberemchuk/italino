@@ -6,25 +6,25 @@ import {
 } from "@/components/ui/icons";
 import { CartLink } from "@/components/cart/cart-link";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { categoryLinks } from "@/lib/catalog/categories";
+import type { CrmCategory } from "@/lib/crm/types";
 import { MobileMenu } from "./mobile-menu";
 import styles from "./site-header.module.css";
 
-// Ключові розділи в шапці; повне дерево категорій (CRM → Sipec) відкриває кнопка «Каталог».
-// `as const` обов'язковий: без літеральних типів адрес typedRoutes не перевірить <Link>.
-const NAV = [
-  { label: "Сумки та рюкзаки", href: "/catalog/bags", accent: false },
-  { label: "Пляшки та кухлі", href: "/catalog/drinkware", accent: false },
-  { label: "Одяг", href: "/catalog/clothing", accent: false },
+const SECONDARY_NAV = [
   { label: "Бренди", href: "/catalog#catalog-filters", accent: false },
   { label: "Sale", href: "/catalog?discounted=true", accent: true },
   { label: "Для бізнесу", href: "/contacts", accent: false },
 ] as const;
 
-export function SiteHeader() {
+export function SiteHeader({ categories }: { categories: readonly CrmCategory[] }) {
+  const rootCategoryLinks = categoryLinks(categories, true);
+  const allCategoryLinks = categoryLinks(categories);
+
   return (
     <header className={styles.header}>
       <div className={`wrap ${styles.inner}`}>
-        <MobileMenu />
+        <MobileMenu categories={allCategoryLinks} />
 
         <Link href="/" className={styles.logo} aria-label="Italino — на головну">
           <BrandLogo />
@@ -34,7 +34,12 @@ export function SiteHeader() {
           <Link href="/catalog" className={styles.catalogBtn}>
             <GridIcon /> Каталог
           </Link>
-          {NAV.map((item) => (
+          {rootCategoryLinks.map((item) => (
+            <Link key={item.id} href={item.href} className={styles.navLink}>
+              {item.name}
+            </Link>
+          ))}
+          {SECONDARY_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -52,7 +57,7 @@ export function SiteHeader() {
           <input
             type="search"
             name="q"
-            placeholder="Пошук: рюкзак, пляшка, худі…"
+            placeholder="Пошук за назвою або артикулом…"
             aria-label="Пошук по каталогу"
             autoComplete="off"
           />

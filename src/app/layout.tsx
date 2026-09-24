@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Onest, Playfair_Display } from "next/font/google";
+import { Suspense } from "react";
+import { connection } from "next/server";
 // Глобальні стилі — до компонентів: їхні CSS-модулі мають перекривати глобальні.
 import "./globals.css";
 import Script from "next/script";
@@ -11,6 +13,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { StoreHydrator } from "@/components/store-hydrator";
 import { publicSiteUrl } from "@/lib/site-url";
 import { STORE } from "@/lib/store";
+import { getStoreCategories } from "@/lib/crm/catalog";
+import type { CrmCategory } from "@/lib/crm/types";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
 const display = Playfair_Display({
@@ -72,6 +76,28 @@ export const viewport: Viewport = {
   themeColor: "#fff7ee",
 };
 
+async function LiveSiteHeader() {
+  await connection();
+  let categories: CrmCategory[] = [];
+  try {
+    categories = await getStoreCategories();
+  } catch (error) {
+    console.error("[CRM categories]", error instanceof Error ? error.message : "Unknown error");
+  }
+  return <SiteHeader categories={categories} />;
+}
+
+async function LiveSiteFooter() {
+  await connection();
+  let categories: CrmCategory[] = [];
+  try {
+    categories = await getStoreCategories();
+  } catch (error) {
+    console.error("[CRM categories]", error instanceof Error ? error.message : "Unknown error");
+  }
+  return <SiteFooter categories={categories} />;
+}
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="uk" className={`${display.variable} ${body.variable}`}>
@@ -82,9 +108,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="ga-consent-default" strategy="beforeInteractive">{CONSENT_DEFAULTS_SCRIPT}</Script>
         <Analytics host={publicSiteUrl().hostname.replace(/^www\./, "")} />
         <AnnouncementBar />
-        <SiteHeader />
+        <Suspense fallback={<SiteHeader categories={[]} />}>
+          <LiveSiteHeader />
+        </Suspense>
         {children}
-        <SiteFooter />
+        <Suspense fallback={<SiteFooter categories={[]} />}>
+          <LiveSiteFooter />
+        </Suspense>
       </body>
     </html>
   );

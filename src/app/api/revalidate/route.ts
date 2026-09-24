@@ -3,13 +3,13 @@ import { revalidateTag } from "next/cache";
 
 /**
  * Вебхук CRM: скидає кеш каталогу, коли змінилися товари або умови магазину.
- * Без нього теги `catalog`/`products`/`capabilities` оновлювалися б лише через
+ * Без нього теги `catalog`/`products`/`categories`/`capabilities` оновлювалися б лише через
  * закінчення `cacheLife("minutes")`.
  *
  * Виклик: POST /api/revalidate з заголовком `x-revalidate-secret`
  * і тілом `{ "tags": ["products"] }` (за замовчуванням — усі теги каталогу).
  */
-const KNOWN_TAGS = ["catalog", "products", "capabilities"] as const;
+const KNOWN_TAGS = ["catalog", "products", "categories", "capabilities"] as const;
 
 function secretMatches(provided: string, expected: string): boolean {
   const a = Buffer.from(provided);

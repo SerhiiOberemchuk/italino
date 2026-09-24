@@ -208,6 +208,10 @@
   background: var(--tint-mint);
 }
 
+.tintSand {
+  background: var(--sand);
+}
+
 .tileLink {
   display: block;
   height: 100%;

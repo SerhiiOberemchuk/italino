@@ -1,17 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon, SparklesIcon } from "@/components/ui/icons";
-import { heroShowcase, type HeroTile } from "@/lib/mock/home";
+import type { CategoryTint, HomeCategory } from "@/lib/catalog/categories";
 import styles from "./hero.module.css";
 
-const TINT_CLASS: Record<HeroTile["tint"], string> = {
+const TINT_CLASS: Record<CategoryTint, string> = {
   lime: styles.tintLime,
   sky: styles.tintSky,
   tomato: styles.tintTomato,
   mint: styles.tintMint,
+  sand: styles.tintSand,
 };
 
-export function Hero() {
+type Props = {
+  showcase: readonly (HomeCategory & { image: string })[];
+  categoryCount: number;
+  modelCount: number;
+  productCount: number;
+};
+
+export function Hero({ showcase, categoryCount, modelCount, productCount }: Props) {
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.blobLime} aria-hidden="true" />
@@ -23,12 +31,11 @@ export function Hero() {
             <SparklesIcon /> Нові позиції щотижня
           </p>
           <h1 id="hero-title" className={styles.title}>
-            Сумки, пляшки, одяг і подарунки — <em>на щодень</em>.
+            Італійські знахідки — <em>на щодень</em>.
           </h1>
           <p className={styles.lead}>
-            Italino пропонує рюкзаки й шопери, термопляшки та кухлі, базовий одяг,
-            кепки, канцелярію й техніку. У колекції — моделі з перероблених та
-            органічних матеріалів для роботи, подорожей і повсякденного життя.
+            Актуальний асортимент, ціни та наявність надходять безпосередньо з каталогу Italino в CRM.
+            Замовляйте для себе, команди або клієнтів — від однієї штуки.
           </p>
           <div className={styles.ctas}>
             <Link href="/catalog" className="btn btn--primary">
@@ -40,35 +47,35 @@ export function Hero() {
           </div>
           <dl className={styles.stats}>
             <div>
-              <dt>Асортимент</dt>
-              <dd>1 300+ моделей</dd>
+              <dt>Категорії</dt>
+              <dd>{categoryCount}</dd>
             </div>
             <div>
-              <dt>Сталі матеріали</dt>
-              <dd>450+ позицій</dd>
+              <dt>Моделі</dt>
+              <dd>{modelCount}</dd>
             </div>
             <div>
-              <dt>Замовлення</dt>
-              <dd>від 1 штуки</dd>
+              <dt>Позиції</dt>
+              <dd>{productCount}</dd>
             </div>
           </dl>
         </div>
 
         <ul className={styles.showcase}>
-          {heroShowcase.map((item, index) => (
-            <li key={item.href} className={`${styles.tile} ${TINT_CLASS[item.tint]}`}>
+          {showcase.slice(0, 4).map((item, index) => (
+            <li key={item.id} className={`${styles.tile} ${TINT_CLASS[item.tint]}`}>
               <Link href={item.href} className={styles.tileLink}>
                 <span className={styles.tileImg}>
                   <Image
                     src={item.image}
-                    alt={item.alt}
+                    alt={item.name}
                     fill
                     priority={index < 2}
                     sizes="(min-width: 1024px) 22vw, 45vw"
                   />
                 </span>
                 <span className={styles.tileLabel}>
-                  {item.label}
+                  {item.name}
                   <small>{item.note}</small>
                 </span>
               </Link>
