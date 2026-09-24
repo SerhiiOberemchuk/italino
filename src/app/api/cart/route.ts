@@ -1,5 +1,5 @@
 import type { CartItem } from "@/lib/cart-item";
-import { getStoreProducts } from "@/lib/crm/catalog";
+import { getStoreProductBySku } from "@/lib/crm/catalog";
 import { allowRequest, clientKey } from "@/lib/rate-limit";
 
 const UNAVAILABLE = ["out_of_stock", "discontinued"];
@@ -14,11 +14,17 @@ export async function POST(request: Request) {
     if (!Array.isArray(body.items) || body.items.length > 100) {
       return Response.json({ error: "Некоректний кошик." }, { status: 400 });
     }
-    const products = await getStoreProducts();
-    const items: CartItem[] = body.items.flatMap((line) => {
-      const sku = typeof line.sku === "string" ? line.sku.slice(0, 120) : "";
-      const requested = Number(line.quantity);
-      const product = products.find((item) => item.sku === sku);
+    const normalized = body.items.map((line) => ({
+      sku: typeof line.sku === "string" ? line.sku.slice(0, 120) : "",
+      requested: Number(line.quantity),
+    }));
+    const uniqueSkus = [...new Set(normalized.flatMap((line) => line.sku ? [line.sku] : []))];
+    const products = new Map(
+      (await Promise.all(uniqueSkus.map(async (sku) => [sku, await getStoreProductBySku(sku)] as const)))
+        .filter((entry): entry is readonly [string, NonNullable<(typeof entry)[1]>] => entry[1] !== null),
+    );
+    const items: CartItem[] = normalized.flatMap(({ sku, requested }) => {
+      const product = products.get(sku);
       if (
         !product || !sku
         || product.price === null

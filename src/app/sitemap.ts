@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getStoreCategories, getStoreProducts } from "@/lib/crm/catalog";
-import { categoryKey, usedCategories } from "@/lib/catalog/categories";
+import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
+import { categoryKey, usedCategoriesByIds } from "@/lib/catalog/categories";
 import { publicSiteUrl } from "@/lib/site-url";
 
 const STATIC_PATHS = [
@@ -21,8 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const [categories, products] = await Promise.all([getStoreCategories(), getStoreProducts()]);
-    for (const category of usedCategories(categories, products)) {
+    const [categories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
+    for (const category of usedCategoriesByIds(
+      categories,
+      catalog.models.flatMap((model) => model.categoryIds),
+    )) {
       entries.push({
         url: url(`/catalog/${encodeURIComponent(categoryKey(category))}`),
         changeFrequency: "weekly",
@@ -30,15 +33,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
 
-    const models = new Map<string, string>();
-    for (const product of products) {
-      const key = product.productGroupId ?? product.id;
-      if (!models.has(key)) models.set(key, product.updatedAt);
-    }
-    for (const [key, updatedAt] of models) {
-      const lastModified = new Date(updatedAt);
+    for (const model of catalog.models) {
+      const lastModified = new Date(model.updatedAt);
       entries.push({
-        url: url(`/product/${encodeURIComponent(key)}`),
+        url: url(`/product/${encodeURIComponent(model.id)}`),
         lastModified: Number.isNaN(lastModified.getTime()) ? undefined : lastModified,
         changeFrequency: "weekly",
         priority: 0.7,

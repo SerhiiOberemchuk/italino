@@ -51,6 +51,7 @@ export type CrmProduct = {
 export type CrmPagination = { page: number; perPage: number; total: number };
 
 export type CrmProductList = { data: CrmProduct[]; pagination: CrmPagination };
+export type CrmProductDetail = { data: CrmProduct };
 
 export type CrmCategory = {
   id: string;

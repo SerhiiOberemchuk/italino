@@ -70,8 +70,8 @@ src/
   lib/
     crm/types.ts         типи публічного API CRM (звужені до потрібних полів)
     crm/client.ts        server-only fetch: base URL, Bearer, timeout, помилки
-    crm/catalog.ts       товари складу ITALINO, "use cache", cacheLife("minutes")
-    catalog/             view-моделі: product-cards.ts, categories.ts, brands.ts
+    crm/catalog.ts       товари складу ITALINO, точкові SKU/group-запити, remote cache
+    catalog/             view-моделі: catalog-index.ts, product-cards.ts, categories.ts, brands.ts
     shipping/schedule.ts розклад поставок, nextCutoff/nextDispatch, форматування дат
     format.ts            formatPrice (UAH, uk-UA)
 docs/                    документація
@@ -88,13 +88,16 @@ docs/                    документація
 
 - Кожна сторінка має **статичну оболонку** (prerender) + динамічні частини, що
   стрімляться в `<Suspense>`.
-- Дані з CRM кешуються явно директивою `"use cache"` + `cacheLife(...)`:
+- Дані з CRM кешуються явно директивами `"use cache"` / `"use cache: remote"`
+  та `cacheLife(...)`. Remote-кеш потрібен каталогу, щоб один компактний індекс
+  використовували всі serverless-інстанси:
 
 | Дані | Кеш | Інвалідація |
 | --- | --- | --- |
-| Категорії, бренди, добірки | `"use cache"`, `cacheLife("hours")` | `revalidateTag("catalog")` через webhook від CRM (план) |
-| Список товарів, картка товару | `"use cache"`, `cacheLife("minutes")` | той самий tag; `updatedAt` для sitemap |
-| Залишки / доступність розміру на checkout | без кешу, `<Suspense>` | — |
+| Категорії | `"use cache: remote"`, профіль `minutes` | `revalidateTag("catalog")` через webhook від CRM |
+| Індекс каталогу (один запис на модель) | `"use cache: remote"`, revalidate 5 хв | теги `catalog`, `products`; `updatedAt` для sitemap |
+| Варіанти однієї моделі / SKU кошика | точкові CRM-запити, remote cache `minutes` | теги `catalog`, `products` |
+| Ціна й залишок SKU на checkout | точковий запит без кешу | — |
 | Статус замовлення (`/track`) | без кешу | — |
 | Розклад поставок | константа; дата рендериться на клієнті | — |
 
@@ -107,6 +110,12 @@ docs/                    документація
 
 Ліміти CRM (120 req/хв на list-endpoint-и, 60 на write) — ще одна причина
 кешувати каталог і не робити запит на кожного відвідувача.
+
+CRM зберігає один рядок на варіант «колір × розмір», тому повний склад може
+мати тисячі рядків. `catalog-index.ts` під час оновлення проходить усі сторінки
+CRM обмеженими паралельними пачками й одразу згортає їх за `productGroupId`.
+У remote cache потрапляє компактний індекс моделей, а не повні CRM-відповіді.
+Сторінка товару читає лише свій `productGroupId`; кошик і checkout — лише свої SKU.
 
 ## Зображення
 

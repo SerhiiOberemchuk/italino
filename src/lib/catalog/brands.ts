@@ -1,5 +1,5 @@
 import type { Route } from "next";
-import type { CrmProduct } from "@/lib/crm/types";
+import type { CatalogModel } from "@/lib/catalog/catalog-index";
 
 export type CatalogBrand = {
   id: string;
@@ -9,7 +9,7 @@ export type CatalogBrand = {
   modelCount: number;
 };
 
-export function catalogBrands(products: readonly CrmProduct[]): CatalogBrand[] {
+export function catalogBrands(models: readonly CatalogModel[]): CatalogBrand[] {
   const brands = new Map<string, {
     id: string;
     name: string;
@@ -17,18 +17,18 @@ export function catalogBrands(products: readonly CrmProduct[]): CatalogBrand[] {
     models: Set<string>;
   }>();
 
-  for (const product of products) {
-    const name = product.brand?.name?.trim();
-    if (!product.brand?.id || !name) continue;
+  for (const model of models) {
+    const name = model.brand?.trim();
+    if (!model.brandId || !name) continue;
 
-    const brand = brands.get(product.brand.id) ?? {
-      id: product.brand.id,
+    const brand = brands.get(model.brandId) ?? {
+      id: model.brandId,
       name,
       image: null,
       models: new Set<string>(),
     };
-    brand.models.add(product.productGroupId ?? product.id);
-    brand.image ??= product.images[0]?.url ?? null;
+    brand.models.add(model.id);
+    brand.image ??= model.image;
     brands.set(brand.id, brand);
   }
 

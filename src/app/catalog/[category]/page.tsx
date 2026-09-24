@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CatalogContent } from "../catalog-content";
-import { categoryBranchIds, findCategory, usedCategories } from "@/lib/catalog/categories";
-import { getStoreCategories, getStoreProducts } from "@/lib/crm/catalog";
+import { categoryBranchIds, findCategory, usedCategoriesByIds } from "@/lib/catalog/categories";
+import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
 import styles from "../../shop.module.css";
 
 async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[category]">) {
   const { category: key } = await params;
-  const [allCategories, products] = await Promise.all([getStoreCategories(), getStoreProducts()]);
-  const categories = usedCategories(allCategories, products);
+  const [allCategories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
+  const categories = usedCategoriesByIds(allCategories, catalog.models.flatMap((model) => model.categoryIds));
   const category = findCategory(categories, key);
   if (!category) notFound();
 
@@ -22,7 +22,7 @@ async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[ca
         searchParams={searchParams}
         categoryIds={categoryIds}
         basePath={`/catalog/${encodeURIComponent(key)}`}
-        products={products}
+        catalog={catalog}
       />
     </>
   );

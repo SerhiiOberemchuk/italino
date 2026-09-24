@@ -2,9 +2,8 @@ import type { Route } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/catalog/product-card";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { toProductCards } from "@/lib/catalog/product-cards";
-import { getStoreProducts } from "@/lib/crm/catalog";
-import type { CrmProduct } from "@/lib/crm/types";
+import { saleCard, type StoreCatalog } from "@/lib/catalog/catalog-index";
+import { getStoreCatalog } from "@/lib/crm/catalog";
 import styles from "../shop.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -28,31 +27,29 @@ type Props = {
   searchParams: Promise<SearchParams>;
   categoryIds?: readonly string[];
   basePath?: string;
-  products?: readonly CrmProduct[];
+  catalog?: StoreCatalog;
 };
 
-export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog", products }: Props) {
+export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog", catalog }: Props) {
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim().toLocaleLowerCase("uk") : "";
   const brand = typeof params.brand === "string" ? params.brand : "";
   const sort = typeof params.sort === "string" ? params.sort : "newest";
   const discounted = params.discounted === "true";
 
-  // Каталог приходить повністю (усі сторінки CRM), тому пошук, фільтри
-  // й сортування працюють по всьому асортименту, а не по першій сотні.
-  const all = products ?? await getStoreProducts();
-  const brands = [...new Set(all.flatMap((p) => p.brand?.name ? [p.brand.name] : []))].sort();
+  // У кеші одна компактна модель на всі її кольори/розміри, а не тисячі CRM-рядків.
+  const all = (catalog ?? await getStoreCatalog()).models;
+  const brands = [...new Set(all.flatMap((model) => model.brand ? [model.brand] : []))].sort();
   const allowedCategoryIds = categoryIds ? new Set(categoryIds) : null;
 
-  const filtered = all.filter((p) => {
-    const haystack = `${p.name} ${p.sku ?? ""} ${p.brand?.name ?? ""} ${p.category?.name ?? ""}`.toLocaleLowerCase("uk");
-    return (!query || haystack.includes(query))
-      && (!brand || p.brand?.name === brand)
-      && (!discounted || (p.compareAtPrice ?? 0) > (p.price ?? Infinity))
-      && (!allowedCategoryIds || (p.category?.id ? allowedCategoryIds.has(p.category.id) : false));
+  const filtered = all.filter((model) => {
+    return (!query || model.searchText.includes(query))
+      && (!brand || model.brand === brand)
+      && (!discounted || model.salePrice !== null)
+      && (!allowedCategoryIds || model.categoryIds.some((id) => allowedCategoryIds.has(id)));
   });
 
-  const cards = toProductCards(filtered).sort((a, b) =>
+  const cards = filtered.map((model) => discounted ? saleCard(model) : model).sort((a, b) =>
     sort === "price_asc" ? (a.price ?? Infinity) - (b.price ?? Infinity)
       : sort === "price_desc" ? (b.price ?? -Infinity) - (a.price ?? -Infinity)
         : 0);

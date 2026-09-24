@@ -13,8 +13,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { StoreHydrator } from "@/components/store-hydrator";
 import { publicSiteUrl } from "@/lib/site-url";
 import { STORE } from "@/lib/store";
-import { usedCategories } from "@/lib/catalog/categories";
-import { getStoreCategories, getStoreProducts } from "@/lib/crm/catalog";
+import { usedCategoriesByIds } from "@/lib/catalog/categories";
+import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
 import type { CrmCategory } from "@/lib/crm/types";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
@@ -79,8 +79,8 @@ export const viewport: Viewport = {
 
 async function loadNavigationCategories(): Promise<CrmCategory[]> {
   try {
-    const [categories, products] = await Promise.all([getStoreCategories(), getStoreProducts()]);
-    return usedCategories(categories, products);
+    const [categories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
+    return usedCategoriesByIds(categories, catalog.models.flatMap((model) => model.categoryIds));
   } catch (error) {
     console.error("[CRM navigation]", error instanceof Error ? error.message : "Unknown error");
     return [];

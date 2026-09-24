@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getCapabilities, getLiveProducts } from "@/lib/crm/catalog";
+import { getCapabilities, getLiveProductBySku } from "@/lib/crm/catalog";
 import { crmPost, CrmError } from "@/lib/crm/client";
 import type { CrmOrderIntakeResponse } from "@/lib/crm/types";
 import { allowRequest, clientKey } from "@/lib/rate-limit";
@@ -44,8 +44,6 @@ export async function POST(request: Request) {
       return Response.json({ error: "Перевірте контактні дані." }, { status: 400 });
     }
 
-    // Ціни й залишки беремо без кешу: це остання перевірка перед списанням грошей.
-    const products = await getLiveProducts();
     const quantities = new Map<string, number>();
     for (const line of input.items) {
       const sku = text(line.sku, 120);
@@ -54,8 +52,14 @@ export async function POST(request: Request) {
       quantities.set(sku, (quantities.get(sku) ?? 0) + quantity);
     }
 
+    // Ціни й залишки кожного SKU беремо точково та без кешу безпосередньо перед оплатою.
+    const products = new Map(
+      (await Promise.all([...quantities.keys()].map(async (sku) => (
+        [sku, await getLiveProductBySku(sku)] as const
+      )))).filter((entry): entry is readonly [string, NonNullable<(typeof entry)[1]>] => entry[1] !== null),
+    );
     const lines = [...quantities].map(([sku, quantity]) => {
-      const product = products.find((item) => item.sku === sku);
+      const product = products.get(sku);
       if (
         !product
         || product.status !== "active"

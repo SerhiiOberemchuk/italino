@@ -1,4 +1,5 @@
 import type { Route } from "next";
+import type { CatalogModel } from "@/lib/catalog/catalog-index";
 import type { CrmCategory, CrmProduct } from "@/lib/crm/types";
 
 export const CATEGORY_TINTS = ["lime", "sky", "tomato", "mint", "sand"] as const;
@@ -56,10 +57,18 @@ export function usedCategories(
   categories: readonly CrmCategory[],
   products: readonly CrmProduct[],
 ): CrmCategory[] {
+  return usedCategoriesByIds(
+    categories,
+    products.flatMap((product) => product.category?.id ? [product.category.id] : []),
+  );
+}
+
+export function usedCategoriesByIds(
+  categories: readonly CrmCategory[],
+  categoryIds: Iterable<string>,
+): CrmCategory[] {
   const byId = new Map(categories.map((category) => [category.id, category]));
-  const usedIds = new Set(products.flatMap((product) => (
-    product.category?.id ? [product.category.id] : []
-  )));
+  const usedIds = new Set(categoryIds);
 
   for (const categoryId of [...usedIds]) {
     let category = byId.get(categoryId);
@@ -107,15 +116,14 @@ export function categoryLinks(
 
 export function homeCategories(
   categories: readonly CrmCategory[],
-  products: readonly CrmProduct[],
+  models: readonly CatalogModel[],
 ): HomeCategory[] {
   return rootCategories(categories).map((category, index) => {
     const branchIds = categoryBranchIds(categories, category.id);
-    const branchProducts = products.filter((product) => (
-      product.category?.id && branchIds.has(product.category.id)
+    const branchModels = models.filter((model) => (
+      model.categoryIds.some((categoryId) => branchIds.has(categoryId))
     ));
-    const models = new Set(branchProducts.map((product) => product.productGroupId ?? product.id));
-    const image = branchProducts.find((product) => product.images[0]?.url)?.images[0]?.url ?? null;
+    const image = branchModels.find((model) => model.image)?.image ?? null;
 
     return {
       id: category.id,
@@ -123,7 +131,7 @@ export function homeCategories(
       href: `/catalog/${encodeURIComponent(categoryKey(category))}` as Route,
       depth: 0,
       image,
-      note: `${models.size} ${models.size === 1 ? "модель" : "моделей"}`,
+      note: `${branchModels.length} ${branchModels.length === 1 ? "модель" : "моделей"}`,
       tint: CATEGORY_TINTS[index % CATEGORY_TINTS.length],
     };
   });
