@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BuyBox } from "@/components/catalog/buy-box";
+import { ProductGallery } from "@/components/catalog/product-gallery";
+import { VariantSelectionProvider } from "@/components/catalog/variant-selection";
+import { isPurchasable, variantAxes } from "@/lib/catalog/variants";
+import type { CrmProduct } from "@/lib/crm/types";
 import { getFreeShippingThreshold, getProductVariants } from "@/lib/crm/catalog";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { NextDispatchDate } from "@/components/home/dispatch-clock";
@@ -17,6 +20,18 @@ function externalUrl(value: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Наявність для Google — те саме правило, що й у кнопки «У кошик»: артикул,
+ * який не можна купити, не видається за передзамовлення. Купити можна, але не
+ * зі складу (під замовлення, передзамовлення) — PreOrder, як і було.
+ */
+function schemaAvailability(variant: CrmProduct): string {
+  if (!isPurchasable(variant)) {
+    return variant.availability === "discontinued" ? "https://schema.org/Discontinued" : "https://schema.org/OutOfStock";
+  }
+  return variant.availability === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/PreOrder";
 }
 
 function attributeLinkLabel(name: string): string {
@@ -35,21 +50,35 @@ async function ProductContent({ params }: Pick<PageProps<"/product/[slug]">, "pa
   if (!variants.length) notFound();
 
   const lead = variants[0];
-  const images = [...new Set(variants.flatMap((p) => p.images.map((image) => image.url)))];
   const attributes = lead.attributes ?? [];
+  const axes = variantAxes(variants);
+
+  // ProductGroup, а не Product: модель — це кілька офіційних артикулів
+  // (`hasVariant`), і саме так CRM зберігає її — один рядок на «колір × розмір».
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "ProductGroup",
     name: lead.name,
-    image: images,
     description: lead.description,
-    sku: lead.sku,
+    productGroupID: lead.productGroupId ?? lead.id,
     brand: lead.brand?.name ? { "@type": "Brand", name: lead.brand.name } : undefined,
-    offers: variants.filter((p) => p.price !== null).map((p) => ({
-      "@type": "Offer",
-      priceCurrency: p.currency,
-      price: p.price,
-      availability: p.availability === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
+    variesBy: [
+      ...(axes.colors.length > 0 ? ["https://schema.org/color"] : []),
+      ...(axes.hasSizes ? ["https://schema.org/size"] : []),
+    ],
+    hasVariant: variants.map((variant) => ({
+      "@type": "Product",
+      name: variant.name,
+      sku: variant.sku ?? undefined,
+      color: variant.color ?? undefined,
+      size: variant.size ?? undefined,
+      image: variant.images.map((image) => image.url),
+      offers: variant.price === null ? undefined : {
+        "@type": "Offer",
+        priceCurrency: variant.currency,
+        price: variant.price,
+        availability: schemaAvailability(variant),
+      },
     })),
   };
 
@@ -61,54 +90,44 @@ async function ProductContent({ params }: Pick<PageProps<"/product/[slug]">, "pa
         <span>{lead.name}</span>
       </nav>
 
-      <div className={styles.product}>
-        <div className={styles.gallery}>
-          {images.map((src, index) => (
-            <div className={styles.galleryItem} key={src}>
-              <Image
-                src={src}
-                alt={`${lead.name}${index ? ` — фото ${index + 1}` : ""}`}
-                fill
-                sizes="(min-width: 1024px) 35vw, 50vw"
-                priority={index === 0}
-              />
+      <VariantSelectionProvider variants={variants}>
+        <div className={styles.product}>
+          <ProductGallery />
+
+          <section className={styles.details}>
+            <p className={styles.brand}>{lead.brand?.name}</p>
+            <h1>{lead.name}</h1>
+            <BuyBox />
+            <div className={styles.infoBox}>
+              <strong>Найближча відправка — <NextDispatchDate fallback={SCHEDULE_COPY.dispatchOn} />.</strong><br />
+              Отримання Новою Поштою — {SCHEDULE_COPY.transit} після відправки, зазвичай {SCHEDULE_COPY.arrivalOn}.
+              {freeFrom !== null ? <><br />Доставка безкоштовна для замовлень від {formatThreshold(freeFrom)}.</> : null}
             </div>
-          ))}
+            {lead.description ? <p className={styles.description}>{lead.description}</p> : null}
+            {attributes.length ? (
+              <table className={styles.specs}>
+                <tbody>
+                  {attributes.map((a) => {
+                    const url = externalUrl(a.value);
+                    return (
+                      <tr key={`${a.name}-${a.value}`}>
+                        <th>{a.name}</th>
+                        <td>
+                          {url
+                            ? <a href={url} target="_blank" rel="noreferrer">{attributeLinkLabel(a.name)}</a>
+                            : <>{a.value}{a.unit ? ` ${a.unit}` : ""}</>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : null}
+          </section>
         </div>
+      </VariantSelectionProvider>
 
-        <section className={styles.details}>
-          <p className={styles.brand}>{lead.brand?.name}</p>
-          <h1>{lead.name}</h1>
-          <BuyBox variants={variants} />
-          <div className={styles.infoBox}>
-            <strong>Найближча відправка — <NextDispatchDate fallback={SCHEDULE_COPY.dispatchOn} />.</strong><br />
-            Отримання Новою Поштою — {SCHEDULE_COPY.transit} після відправки, зазвичай {SCHEDULE_COPY.arrivalOn}.
-            {freeFrom !== null ? <><br />Доставка безкоштовна для замовлень від {formatThreshold(freeFrom)}.</> : null}
-          </div>
-          {lead.description ? <p className={styles.description}>{lead.description}</p> : null}
-          {attributes.length ? (
-            <table className={styles.specs}>
-              <tbody>
-                {attributes.map((a) => {
-                  const url = externalUrl(a.value);
-                  return (
-                    <tr key={`${a.name}-${a.value}`}>
-                      <th>{a.name}</th>
-                      <td>
-                        {url
-                          ? <a href={url} target="_blank" rel="noreferrer">{attributeLinkLabel(a.name)}</a>
-                          : <>{a.value}{a.unit ? ` ${a.unit}` : ""}</>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : null}
-        </section>
-      </div>
-
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
     </>
   );
 }
