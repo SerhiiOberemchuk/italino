@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Italino — товари з Італії",
+    name: "Italino — речі на щодень",
     short_name: "Italino",
-    description: "Товари зі складу в Італії з доставкою в Україну.",
+    description: "Речі на щодень зі складу в Мілані з доставкою по Україні.",
     start_url: "/",
     display: "standalone",
     background_color: "#fff7ee",

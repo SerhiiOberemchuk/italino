@@ -23,10 +23,11 @@ export function BrandStrip({ brands }: { brands: readonly CatalogBrand[] }) {
           <div>
             <p className="eyebrow">Бренди</p>
             <h2 id="brands-title" className="section-title">
-              Бренди в актуальному каталозі
+              Бренди нашого каталогу
             </h2>
             <p className="section-lead">
-              Тут показані лише бренди, товари яких зараз доступні на складі Italino.
+              Показуємо лише ті бренди, моделі яких зараз є на складі в Мілані й можуть поїхати
+              найближчою поставкою.
             </p>
           </div>
           <Link href="/catalog#catalog-filters" className="btn btn--ghost">
@@ -52,9 +53,9 @@ export function BrandStrip({ brands }: { brands: readonly CatalogBrand[] }) {
                 <h3>
                   <Link href={brand.href}>{brand.name}</Link>
                 </h3>
-                <p className={styles.text}>Товари бренду в актуальному асортименті складу Italino.</p>
+                <p className={styles.text}>Усі моделі бренду, які можна замовити цього тижня.</p>
                 <Link href={brand.href} className={styles.link}>
-                  Дивитися бренд <ArrowRightIcon />
+                  Дивитися моделі <ArrowRightIcon />
                 </Link>
               </div>
             </li>

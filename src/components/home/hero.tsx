@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon, SparklesIcon } from "@/components/ui/icons";
 import type { CategoryTint, HomeCategory } from "@/lib/catalog/categories";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import styles from "./hero.module.css";
 
 const TINT_CLASS: Record<CategoryTint, string> = {
@@ -14,12 +15,18 @@ const TINT_CLASS: Record<CategoryTint, string> = {
 
 type Props = {
   showcase: readonly (HomeCategory & { image: string })[];
-  categoryCount: number;
   modelCount: number;
-  productCount: number;
 };
 
-export function Hero({ showcase, categoryCount, modelCount, productCount }: Props) {
+function modelsLabel(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${count} модель`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${count} моделі`;
+  return `${count} моделей`;
+}
+
+export function Hero({ showcase, modelCount }: Props) {
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.blobLime} aria-hidden="true" />
@@ -28,35 +35,38 @@ export function Hero({ showcase, categoryCount, modelCount, productCount }: Prop
       <div className={`wrap ${styles.inner}`}>
         <div className={styles.copy}>
           <p className={styles.pill}>
-            <SparklesIcon /> Нові позиції щотижня
+            <SparklesIcon /> Щотижнева поставка з Мілана
           </p>
           <h1 id="hero-title" className={styles.title}>
-            Італійські знахідки — <em>на щодень</em>.
+            Речі, які працюють <em>щодня</em>.
           </h1>
           <p className={styles.lead}>
-            Актуальний асортимент, ціни та наявність надходять безпосередньо з каталогу Italino в CRM.
-            Замовляйте для себе, команди або клієнтів — від однієї штуки.
+            Практичні речі на кожен день з каталогу італійського постачальника. Ви замовляєте
+            онлайн — ми забираємо товар зі складу в Мілані й привозимо в Україну. Ціни в гривнях,
+            замовлення від однієї штуки.
           </p>
           <div className={styles.ctas}>
             <Link href="/catalog" className="btn btn--primary">
-              Дивитися каталог <ArrowRightIcon />
+              Обрати в каталозі <ArrowRightIcon />
             </Link>
             <Link href="/contacts" className="btn btn--ghost">
               Для бізнесу
             </Link>
           </div>
           <dl className={styles.stats}>
+            {modelCount > 0 ? (
+              <div>
+                <dt>У каталозі</dt>
+                <dd>{modelsLabel(modelCount)}</dd>
+              </div>
+            ) : null}
             <div>
-              <dt>Категорії</dt>
-              <dd>{categoryCount}</dd>
+              <dt>Відправка</dt>
+              <dd>{SCHEDULE_COPY.dispatchEvery[0].toUpperCase() + SCHEDULE_COPY.dispatchEvery.slice(1)}</dd>
             </div>
             <div>
-              <dt>Моделі</dt>
-              <dd>{modelCount}</dd>
-            </div>
-            <div>
-              <dt>Позиції</dt>
-              <dd>{productCount}</dd>
+              <dt>Повернення</dt>
+              <dd>14 днів</dd>
             </div>
           </dl>
         </div>

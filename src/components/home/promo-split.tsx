@@ -2,19 +2,26 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./promo-split.module.css";
 
-export function PromoSplit({ saleImage, businessImage }: { saleImage: string | null; businessImage: string | null }) {
+type Props = {
+  saleImage: string | null;
+  businessImage: string | null;
+  /** Найбільша знижка в каталозі, %; null — акційних моделей зараз немає. */
+  maxDiscount: number | null;
+};
+
+export function PromoSplit({ saleImage, businessImage, maxDiscount }: Props) {
   return (
     <section className={`wrap ${styles.section}`} aria-label="Sale та пропозиція для бізнесу">
       <div className={styles.grid}>
         <Link href="/catalog?discounted=true" className={`${styles.tile} ${styles.tileSale}`}>
           <div className={styles.copy}>
-            <p className={`eyebrow ${styles.eyebrow}`}>Кінець серій та останні партії</p>
-            <h3>Sale до −50%</h3>
+            <p className={`eyebrow ${styles.eyebrow}`}>Кінець серій</p>
+            <h3>{maxDiscount ? `Sale до −${maxDiscount}%` : "Sale"}</h3>
             <p className={styles.text}>
-              Добірка моделей з обмеженим залишком і спеціальною ціною.
-              Актуальний асортимент оновлюємо перед кожною поставкою.
+              Останні партії моделей, які постачальник знімає з виробництва. Коли залишок
+              закінчиться, модель зникне з каталогу.
             </p>
-            <span className={`btn btn--ghost ${styles.btn}`}>Дивитися sale</span>
+            <span className={`btn btn--ghost ${styles.btn}`}>Встигнути до кінця серії</span>
           </div>
           {saleImage ? (
             <div className={styles.img} aria-hidden="true">
@@ -26,10 +33,10 @@ export function PromoSplit({ saleImage, businessImage }: { saleImage: string | n
         <Link href="/contacts" className={`${styles.tile} ${styles.tileBusiness}`}>
           <div className={styles.copy}>
             <p className={`eyebrow ${styles.eyebrow}`}>Для бізнесу</p>
-            <h3>Мерч і подарунки з логотипом</h3>
+            <h3>Мерч для команди й клієнтів</h3>
             <p className={styles.text}>
-              Шопери, пляшки, ручки та блокноти для команди й клієнтів. Оптові
-              ціни від 50 шт., нанесення логотипа — за запитом.
+              Від 50 штук — оптова ціна. Підберемо моделі під ваш бюджет і дедлайн,
+              нанесення логотипа — за запитом.
             </p>
             <span className={`btn btn--ghost ${styles.btn}`}>Отримати пропозицію</span>
           </div>

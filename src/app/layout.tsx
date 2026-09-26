@@ -11,6 +11,7 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { StoreHydrator } from "@/components/store-hydrator";
+import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { publicSiteUrl } from "@/lib/site-url";
 import { STORE } from "@/lib/store";
 import { usedCategoriesByIds } from "@/lib/catalog/categories";
@@ -62,7 +63,7 @@ export const metadata: Metadata = {
     template: "%s · Italino",
   },
   description:
-    "Рюкзаки й шопери, термопляшки та кухлі, базовий одяг, канцелярія й техніка від Italino. Замовляйте онлайн — щотижня організовуємо доставку замовлень в Україну.",
+    `Рюкзаки, сумки, пляшки, одяг і канцелярія з каталогу італійського постачальника. Відправка зі складу в Мілані ${SCHEDULE_COPY.dispatchEvery}, доставка Новою Поштою по всій Україні.`,
   openGraph: {
     type: "website",
     locale: "uk_UA",

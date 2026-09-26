@@ -9,6 +9,7 @@ import { PromoSplit } from "@/components/home/promo-split";
 import { WhyItalino } from "@/components/home/why-italino";
 import { catalogBrands } from "@/lib/catalog/brands";
 import { homeCategories, type HomeCategory, usedCategoriesByIds } from "@/lib/catalog/categories";
+import { saleCard } from "@/lib/catalog/catalog-index";
 import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
 import { connection } from "next/server";
 
@@ -41,20 +42,17 @@ export default async function HomePage() {
   );
   const saleImage = productCards.find((model) => model.image && model.salePrice !== null)?.image ?? null;
   const businessImage = productCards.find((model) => model.image && model.image !== saleImage)?.image ?? null;
+  // Відсоток у банері Sale — лише реальна найбільша знижка з каталогу, не маркетингова обіцянка.
+  const maxDiscount = Math.max(0, ...productCards.map((model) => saleCard(model).discountPercent ?? 0)) || null;
 
   return (
     <main>
       {/* Спершу асортимент: hero → категорії → товари → бренди. Доставку пояснюємо нижче. */}
-      <Hero
-        showcase={showcase}
-        categoryCount={visibleCategories.length}
-        modelCount={productCards.length}
-        productCount={catalog.productCount}
-      />
+      <Hero showcase={showcase} modelCount={productCards.length} />
       <CategoryTiles categories={categoryCards} />
       <ProductRail
-        eyebrow="Щойно в каталозі"
-        title="Нові надходження"
+        eyebrow="Новинки"
+        title="Щойно в каталозі"
         href="/catalog?sort=newest"
         linkLabel="Усі новинки"
         products={productCards.slice(0, 8)}
@@ -64,7 +62,7 @@ export default async function HomePage() {
         }
       />
       <BrandStrip brands={brands} />
-      <PromoSplit saleImage={saleImage} businessImage={businessImage} />
+      <PromoSplit saleImage={saleImage} businessImage={businessImage} maxDiscount={maxDiscount} />
       <DispatchBanner />
       <HowItWorks />
       <WhyItalino />

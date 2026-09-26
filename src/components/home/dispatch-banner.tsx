@@ -6,7 +6,7 @@ import styles from "./dispatch-banner.module.css";
 const TIMELINE = [
   {
     when: SCHEDULE_COPY.cutoffShort,
-    what: "Закриваємо прийом замовлень",
+    what: "Останній момент замовити",
     desc: "Усе, що оформлено до цього часу, їде цією поставкою.",
     hot: false,
   },
@@ -19,7 +19,7 @@ const TIMELINE = [
   {
     when: SCHEDULE_COPY.borderLeg,
     what: "Поставка в Україні",
-    desc: "Митне оформлення й передача в Нову Пошту, з’являється ТТН.",
+    desc: "Митне оформлення й передача в Нову Пошту — ви отримуєте номер ТТН.",
     hot: false,
   },
   {
@@ -49,8 +49,8 @@ export function DispatchBanner() {
               <NextDispatchDate fallback={SCHEDULE_COPY.dispatchName} />
             </h2>
             <p className={styles.note}>
-              Прийом замовлень у цю поставку закривається {SCHEDULE_COPY.cutoffOn}. Усе,
-              що оформлено пізніше, поїде {SCHEDULE_COPY.dispatchNext}.
+              Оформіть замовлення {SCHEDULE_COPY.cutoffUntil} — і воно
+              поїде цією поставкою. Замовлення, оформлені пізніше, відправимо {SCHEDULE_COPY.dispatchNext}.
             </p>
             <CutoffCountdown />
             <div className={styles.ctas}>

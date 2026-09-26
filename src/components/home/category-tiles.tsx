@@ -21,7 +21,7 @@ export function CategoryTiles({ categories }: { categories: readonly HomeCategor
         <div>
           <p className="eyebrow">Каталог</p>
           <h2 id="cats-title" className="section-title">
-            Обирайте за категорією
+            Що шукаєте?
           </h2>
         </div>
         <Link href="/catalog" className="btn btn--ghost">

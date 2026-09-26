@@ -11,25 +11,25 @@ import styles from "./how-it-works.module.css";
 const STEPS = [
   {
     icon: SearchIcon,
-    title: "Обирайте в каталозі",
-    text: "Сумки, пляшки, одяг, канцелярія та подарунки — понад 1 300 моделей. Наявність оновлюється щодня за складом у Мілані.",
+    title: "Обираєте модель",
+    text: "Колір, розмір, кількість. Наявність звіряємо зі складом у Мілані щодня: якщо товар на сайті є, він поїде найближчою поставкою.",
     when: "будь-коли",
   },
   {
     icon: BagIcon,
-    title: `Замовляйте ${SCHEDULE_COPY.cutoffUntil}`,
-    text: "Оформлюєте замовлення онлайн і безпечно оплачуєте карткою на захищеній платіжній сторінці.",
+    title: `Замовляєте ${SCHEDULE_COPY.cutoffUntil}`,
+    text: "Оформлення займає кілька хвилин. Оплата — карткою онлайн на захищеній платіжній сторінці.",
     when: "до дедлайну",
   },
   {
     icon: PlaneIcon,
     title: `${SCHEDULE_COPY.dispatchName[0].toUpperCase()}${SCHEDULE_COPY.dispatchName.slice(1)} — відправка з Мілана`,
-    text: "Формуємо щотижневу поставку та організовуємо доставку замовлень в Україну.",
+    text: "Забираємо всі замовлення тижня зі складу й веземо в Україну однією поставкою.",
     when: SCHEDULE_COPY.dispatchEvery,
   },
   {
     icon: TruckIcon,
-    title: "Отримуєте Новою Поштою",
+    title: "Забираєте на Новій Пошті",
     text: `${SCHEDULE_COPY.transit} від відправки — і посилка у відділенні чи поштоматі Нової Пошти, зазвичай ${SCHEDULE_COPY.arrivalOn}.`,
     when: SCHEDULE_COPY.transit,
   },
@@ -42,7 +42,7 @@ export function HowItWorks() {
         <div>
           <p className="eyebrow">Як це працює</p>
           <h2 id="how-title" className="section-title">
-            Чотири кроки — і замовлення у вас
+            Від кошика до посилки — чотири кроки
           </h2>
         </div>
         <Link href="/delivery" className="btn btn--ghost">
