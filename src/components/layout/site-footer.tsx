@@ -40,8 +40,8 @@ export function SiteFooter({ categories }: { categories: readonly CrmCategory[] 
             <BrandLogo />
           </Link>
           <p>
-            Italino — постачальник сумок, пляшок, одягу, канцелярії та подарунків
-            для щоденних і корпоративних потреб. Замовлення відправляємо до України щотижня.
+            Italino — практичні речі на щодень і мерч для команд. Замовлення зі складу
+            в Мілані привозимо в Україну щотижня.
           </p>
           <ul className={styles.contacts}>
             <li>

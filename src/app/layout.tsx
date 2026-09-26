@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     template: "%s · Italino",
   },
   description:
-    `Рюкзаки, сумки, пляшки, одяг і канцелярія з каталогу італійського постачальника. Відправка зі складу в Мілані ${SCHEDULE_COPY.dispatchEvery}, доставка Новою Поштою по всій Україні.`,
+    `Рюкзаки, сумки, пляшки, одяг і канцелярія від Italino. Відправка зі складу в Мілані ${SCHEDULE_COPY.dispatchEvery}, доставка Новою Поштою по всій Україні.`,
   openGraph: {
     type: "website",
     locale: "uk_UA",

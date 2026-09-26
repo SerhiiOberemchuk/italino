@@ -18,8 +18,8 @@ export function PromoSplit({ saleImage, businessImage, maxDiscount }: Props) {
             <p className={`eyebrow ${styles.eyebrow}`}>Кінець серій</p>
             <h3>{maxDiscount ? `Sale до −${maxDiscount}%` : "Sale"}</h3>
             <p className={styles.text}>
-              Останні партії моделей, які постачальник знімає з виробництва. Коли залишок
-              закінчиться, модель зникне з каталогу.
+              Останні партії моделей, яких більше не буде в каталозі. Ціна знижена,
+              кількість обмежена.
             </p>
             <span className={`btn btn--ghost ${styles.btn}`}>Встигнути до кінця серії</span>
           </div>
