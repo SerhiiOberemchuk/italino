@@ -10,26 +10,32 @@ import {
 } from "react";
 import styles from "./custom-select.module.css";
 
-export type SelectOption = {
-  value: string;
+export type SelectOption<Value extends string = string> = {
+  value: Value;
   label: string;
 };
 
-type CustomSelectProps = {
+type CustomSelectProps<Value extends string> = {
   label: string;
   name: string;
-  value: string;
-  options: SelectOption[];
+  value: Value;
+  options: SelectOption<Value>[];
+  onValueChange: (value: Value) => void;
 };
 
-export function CustomSelect({ label, name, value, options }: CustomSelectProps) {
+export function CustomSelect<Value extends string>({
+  label,
+  name,
+  value,
+  options,
+  onValueChange,
+}: CustomSelectProps<Value>) {
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [open, setOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(value);
-  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === selectedValue));
+  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
   const selected = options[selectedIndex] ?? options[0];
 
   /*
@@ -51,8 +57,8 @@ export function CustomSelect({ label, name, value, options }: CustomSelectProps)
     return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, [open, selectedIndex]);
 
-  function choose(nextValue: string) {
-    setSelectedValue(nextValue);
+  function choose(nextValue: Value) {
+    onValueChange(nextValue);
     setOpen(false);
     requestAnimationFrame(() => triggerRef.current?.focus());
   }
@@ -75,7 +81,7 @@ export function CustomSelect({ label, name, value, options }: CustomSelectProps)
       }}
     >
       <span className={styles.label} id={`${id}-label`}>{label}</span>
-      <input type="hidden" name={name} value={selectedValue} />
+      <input type="hidden" name={name} value={value} />
       <button
         ref={triggerRef}
         type="button"
@@ -98,7 +104,7 @@ export function CustomSelect({ label, name, value, options }: CustomSelectProps)
       {open ? (
         <div className={styles.menu} id={`${id}-listbox`} role="listbox" aria-labelledby={`${id}-label`}>
           {options.map((option, index) => {
-            const active = option.value === selectedValue;
+            const active = option.value === value;
             return (
               <button
                 key={option.value}

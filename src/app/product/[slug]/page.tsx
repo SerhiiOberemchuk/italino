@@ -11,6 +11,8 @@ import { getFreeShippingThreshold, getProductVariants } from "@/lib/crm/catalog"
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { NextDispatchDate } from "@/components/home/dispatch-clock";
 import { formatThreshold } from "@/lib/shipping/free-shipping";
+import { offerPolicyReferences } from "@/lib/seo/merchant-policies";
+import { publicSiteUrl } from "@/lib/site-url";
 import styles from "../../shop.module.css";
 
 function externalUrl(value: string): string | null {
@@ -52,6 +54,7 @@ async function ProductContent({ params }: Pick<PageProps<"/product/[slug]">, "pa
   const lead = variants[0];
   const attributes = lead.attributes ?? [];
   const axes = variantAxes(variants);
+  const offerPolicies = offerPolicyReferences(publicSiteUrl());
 
   // ProductGroup, а не Product: модель — це кілька офіційних артикулів
   // (`hasVariant`), і саме так CRM зберігає її — один рядок на «колір × розмір».
@@ -78,6 +81,7 @@ async function ProductContent({ params }: Pick<PageProps<"/product/[slug]">, "pa
         priceCurrency: variant.currency,
         price: variant.price,
         availability: schemaAvailability(variant),
+        ...offerPolicies,
       },
     })),
   };

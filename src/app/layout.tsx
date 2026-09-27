@@ -17,6 +17,7 @@ import { STORE } from "@/lib/store";
 import { usedCategoriesByIds } from "@/lib/catalog/categories";
 import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
 import type { CrmCategory } from "@/lib/crm/types";
+import { merchantPolicies } from "@/lib/seo/merchant-policies";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
 const display = Playfair_Display({
@@ -34,6 +35,7 @@ const body = Onest({
 });
 
 const siteUrl = publicSiteUrl();
+const policies = merchantPolicies(siteUrl);
 
 const storeJsonLd = {
   "@context": "https://schema.org",
@@ -46,6 +48,8 @@ const storeJsonLd = {
   email: STORE.email,
   telephone: STORE.phone,
   paymentAccepted: "Visa, Mastercard, ПРОСТІР, Apple Pay, Google Pay",
+  hasMerchantReturnPolicy: policies.returnPolicy,
+  hasShippingService: policies.shippingService,
   address: {
     "@type": "PostalAddress",
     streetAddress: "вул. Миру, будинок 2",
