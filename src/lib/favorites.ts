@@ -62,3 +62,8 @@ export const useFavoritesStore = create<FavoritesStore>()(
 export function useIsFavorite(productId: string): boolean {
   return useFavoritesStore((state) => state.items.some((item) => item.id === productId));
 }
+
+/** Кількість улюблених моделей для реактивних індикаторів інтерфейсу. */
+export function useFavoritesCount(): number {
+  return useFavoritesStore((state) => state.items.length);
+}

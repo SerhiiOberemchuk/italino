@@ -1,13 +1,11 @@
 import Link from "next/link";
 import {
   GridIcon,
-  HeartIcon,
   SearchIcon,
 } from "@/components/ui/icons";
 import { CartLink } from "@/components/cart/cart-link";
 import { BrandLogo } from "@/components/brand/brand-logo";
-import { categoryLinks } from "@/lib/catalog/categories";
-import type { CrmCategory } from "@/lib/crm/types";
+import { FavoritesLink } from "@/components/favorites/favorites-link";
 import { MobileMenu } from "./mobile-menu";
 import styles from "./site-header.module.css";
 
@@ -17,14 +15,11 @@ const SECONDARY_NAV = [
   { label: "Для бізнесу", href: "/contacts", accent: false },
 ] as const;
 
-export function SiteHeader({ categories }: { categories: readonly CrmCategory[] }) {
-  const rootCategoryLinks = categoryLinks(categories, true);
-  const allCategoryLinks = categoryLinks(categories);
-
+export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={`wrap ${styles.inner}`}>
-        <MobileMenu categories={allCategoryLinks} />
+        <MobileMenu />
 
         <Link href="/" className={styles.logo} aria-label="Italino — на головну">
           <BrandLogo />
@@ -34,11 +29,6 @@ export function SiteHeader({ categories }: { categories: readonly CrmCategory[] 
           <Link href="/catalog" className={styles.catalogBtn}>
             <GridIcon /> Каталог
           </Link>
-          {rootCategoryLinks.map((item) => (
-            <Link key={item.id} href={item.href} className={styles.navLink}>
-              {item.name}
-            </Link>
-          ))}
           {SECONDARY_NAV.map((item) => (
             <Link
               key={item.href}
@@ -71,9 +61,7 @@ export function SiteHeader({ categories }: { categories: readonly CrmCategory[] 
           >
             <SearchIcon />
           </Link>
-          <Link href="/favorites" className={styles.iconBtn} aria-label="Улюблені товари">
-            <HeartIcon />
-          </Link>
+          <FavoritesLink />
           <CartLink />
         </div>
       </div>

@@ -2,7 +2,9 @@ import type { Route } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/catalog/product-card";
 import { saleCard, type StoreCatalog } from "@/lib/catalog/catalog-index";
-import { getStoreCatalog } from "@/lib/crm/catalog";
+import { categoryLinks, usedCategoriesByIds } from "@/lib/catalog/categories";
+import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
+import type { CrmCategory } from "@/lib/crm/types";
 import { CatalogShell } from "./catalog-shell";
 import styles from "../shop.module.css";
 
@@ -29,9 +31,10 @@ type Props = {
   categoryIds?: readonly string[];
   basePath?: string;
   catalog?: StoreCatalog;
+  categories?: readonly CrmCategory[];
 };
 
-export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog", catalog }: Props) {
+export async function CatalogContent({ searchParams, categoryIds, basePath = "/catalog", catalog, categories }: Props) {
   const params = await searchParams;
   const searchQuery = typeof params.q === "string" ? params.q.trim() : "";
   const query = searchQuery.toLocaleLowerCase("uk");
@@ -40,7 +43,15 @@ export async function CatalogContent({ searchParams, categoryIds, basePath = "/c
   const discounted = params.discounted === "true";
 
   // У кеші одна компактна модель на всі її кольори/розміри, а не тисячі CRM-рядків.
-  const all = (catalog ?? await getStoreCatalog()).models;
+  const [storeCatalog, allCategories] = await Promise.all([
+    catalog ?? getStoreCatalog(),
+    categories ?? getStoreCategories(),
+  ]);
+  const all = storeCatalog.models;
+  const visibleCategories = usedCategoriesByIds(
+    allCategories,
+    all.flatMap((model) => model.categoryIds),
+  );
   const brands = [...new Set(all.flatMap((model) => model.brand ? [model.brand] : []))].sort();
   const allowedCategoryIds = categoryIds ? new Set(categoryIds) : null;
 
@@ -65,6 +76,7 @@ export async function CatalogContent({ searchParams, categoryIds, basePath = "/c
     <CatalogShell
       basePath={basePath}
       brands={brands}
+      categories={categoryLinks(visibleCategories)}
       initialBrand={brand}
       initialQuery={searchQuery}
       initialSort={sort}

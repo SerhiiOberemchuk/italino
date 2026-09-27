@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CatalogContent } from "../catalog-content";
-import { categoryBranchIds, findCategory, usedCategoriesByIds } from "@/lib/catalog/categories";
+import { categoryBranchIds, categoryKey, findCategory, usedCategoriesByIds } from "@/lib/catalog/categories";
 import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
 import styles from "../../shop.module.css";
 
@@ -21,8 +21,9 @@ async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[ca
       <CatalogContent
         searchParams={searchParams}
         categoryIds={categoryIds}
-        basePath={`/catalog/${encodeURIComponent(key)}`}
+        basePath={`/catalog/${encodeURIComponent(categoryKey(category))}`}
         catalog={catalog}
+        categories={categories}
       />
     </>
   );

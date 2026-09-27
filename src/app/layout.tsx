@@ -82,25 +82,19 @@ export const viewport: Viewport = {
   themeColor: "#fff7ee",
 };
 
-async function loadNavigationCategories(): Promise<CrmCategory[]> {
+async function loadFooterCategories(): Promise<CrmCategory[]> {
   try {
     const [categories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
     return usedCategoriesByIds(categories, catalog.models.flatMap((model) => model.categoryIds));
   } catch (error) {
-    console.error("[CRM navigation]", error instanceof Error ? error.message : "Unknown error");
+    console.error("[CRM footer categories]", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
 
-async function LiveSiteHeader() {
-  await connection();
-  const categories = await loadNavigationCategories();
-  return <SiteHeader categories={categories} />;
-}
-
 async function LiveSiteFooter() {
   await connection();
-  const categories = await loadNavigationCategories();
+  const categories = await loadFooterCategories();
   return <SiteFooter categories={categories} />;
 }
 
@@ -114,9 +108,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="ga-consent-default" strategy="beforeInteractive">{CONSENT_DEFAULTS_SCRIPT}</Script>
         <Analytics host={publicSiteUrl().hostname.replace(/^www\./, "")} />
         <AnnouncementBar />
-        <Suspense fallback={<SiteHeader categories={[]} />}>
-          <LiveSiteHeader />
-        </Suspense>
+        <SiteHeader />
         {children}
         <Suspense fallback={<SiteFooter categories={[]} />}>
           <LiveSiteFooter />

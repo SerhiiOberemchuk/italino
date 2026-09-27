@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CustomSelect } from "@/components/ui/custom-select";
+import type { CatalogCategoryLink } from "@/lib/catalog/categories";
 import styles from "../shop.module.css";
 
 const FILTER_DELAY_MS = 300;
@@ -13,6 +14,7 @@ type SortValue = "newest" | "price_asc" | "price_desc";
 type CatalogShellProps = {
   basePath: string;
   brands: string[];
+  categories: CatalogCategoryLink[];
   initialBrand: string;
   initialQuery: string;
   initialSort: SortValue;
@@ -22,6 +24,7 @@ type CatalogShellProps = {
 export function CatalogShell({
   basePath,
   brands,
+  categories,
   initialBrand,
   initialQuery,
   initialSort,
@@ -30,6 +33,7 @@ export function CatalogShell({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [categoryPath, setCategoryPath] = useState(basePath);
   const [query, setQuery] = useState(initialQuery);
   const [brand, setBrand] = useState(initialBrand);
   const [sort, setSort] = useState<SortValue>(initialSort);
@@ -42,6 +46,7 @@ export function CatalogShell({
     if (committedFiltersRef.current === committedFilters) return;
 
     committedFiltersRef.current = committedFilters;
+    setCategoryPath(basePath);
     setQuery(initialQuery);
     setBrand(initialBrand);
     setSort(initialSort);
@@ -49,7 +54,8 @@ export function CatalogShell({
 
   useEffect(() => {
     const normalizedQuery = query.trim();
-    const filtersChanged = normalizedQuery !== initialQuery
+    const filtersChanged = categoryPath !== basePath
+      || normalizedQuery !== initialQuery
       || brand !== initialBrand
       || sort !== initialSort;
     if (!filtersChanged) return;
@@ -70,16 +76,16 @@ export function CatalogShell({
       next.delete("page");
 
       const nextSearch = next.toString();
-      if (nextSearch === searchParams.toString()) return;
+      if (categoryPath === basePath && nextSearch === searchParams.toString()) return;
 
       startTransition(() => {
-        const href = (nextSearch ? `${basePath}?${nextSearch}` : basePath) as Route;
+        const href = (nextSearch ? `${categoryPath}?${nextSearch}` : categoryPath) as Route;
         router.replace(href, { scroll: false });
       });
     }, FILTER_DELAY_MS);
 
     return () => window.clearTimeout(timeout);
-  }, [basePath, brand, initialBrand, initialQuery, initialSort, query, router, searchParams, sort]);
+  }, [basePath, brand, categoryPath, initialBrand, initialQuery, initialSort, query, router, searchParams, sort]);
 
   return (
     <div className={styles.catalogLayout}>
@@ -89,6 +95,24 @@ export function CatalogShell({
         aria-label="Фільтри каталогу"
         onSubmit={(event) => event.preventDefault()}
       >
+        <label className={styles.field}>
+          Категорія
+          <span className={styles.nativeSelect}>
+            <select
+              name="category"
+              value={categoryPath}
+              onChange={(event) => setCategoryPath(event.target.value)}
+            >
+              <option value="/catalog">Усі категорії</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.href}>
+                  {`${"\u00a0\u00a0".repeat(category.depth)}${category.depth ? "↳ " : ""}${category.name}`}
+                </option>
+              ))}
+            </select>
+            <span aria-hidden="true" />
+          </span>
+        </label>
         <label>
           Пошук
           <input
