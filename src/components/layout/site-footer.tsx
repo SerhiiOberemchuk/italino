@@ -5,11 +5,18 @@ import { BrandLogo } from "@/components/brand/brand-logo";
 import { ObriymMark } from "@/components/brand/obriym-mark";
 import { MastercardMark, ProstirMark, VisaMark } from "@/components/ui/payment-marks";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
-import { categoryLinks } from "@/lib/catalog/categories";
-import type { CrmCategory } from "@/lib/crm/types";
 import styles from "./site-footer.module.css";
 
+// Футер статичний: жодних запитів до CRM, лише постійні посилання.
 const COLUMNS = [
+  {
+    title: "Каталог",
+    links: [
+      { label: "Усі товари", href: "/catalog" },
+      { label: "Sale", href: "/catalog?discounted=true" },
+      { label: "Улюблені товари", href: "/favorites" },
+    ],
+  },
   {
     title: "Покупцям",
     links: [
@@ -29,9 +36,7 @@ const COLUMNS = [
   },
 ] as const;
 
-export function SiteFooter({ categories }: { categories: readonly CrmCategory[] }) {
-  const catalogLinks = categoryLinks(categories, true);
-
+export function SiteFooter() {
   return (
     <footer className={styles.footer}>
       <div className={`wrap ${styles.top}`}>
@@ -59,16 +64,6 @@ export function SiteFooter({ categories }: { categories: readonly CrmCategory[] 
             </li>
           </ul>
         </div>
-
-        <nav className={styles.col} aria-label="Каталог">
-          <h4>Каталог</h4>
-          <ul>
-            {catalogLinks.map((category) => (
-              <li key={category.id}><Link href={category.href}>{category.name}</Link></li>
-            ))}
-            <li><Link href="/catalog?discounted=true">Sale</Link></li>
-          </ul>
-        </nav>
 
         {COLUMNS.map((column) => (
           <nav key={column.title} className={styles.col} aria-label={column.title}>

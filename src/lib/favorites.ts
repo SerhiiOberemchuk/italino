@@ -13,7 +13,8 @@ type FavoritesStore = {
   /** false, доки не прочитано localStorage: перший рендер має збігтися з SSR. */
   hydrated: boolean;
   toggle: (productId: string) => void;
-  reconcile: (productIds: string[]) => void;
+  /** Прибрати моделі, яких більше немає на вітрині. */
+  forget: (productIds: readonly string[]) => void;
   markHydrated: () => void;
 };
 
@@ -38,11 +39,9 @@ export const useFavoritesStore = create<FavoritesStore>()(
           ? state.items.filter((item) => item !== productId)
           : [productId, ...state.items],
       })),
-      reconcile: (productIds) => set((state) => {
-        const items = validFavorites(productIds);
-        return items.length === state.items.length && items.every((id, index) => id === state.items[index])
-          ? state
-          : { items };
+      forget: (productIds) => set((state) => {
+        const items = state.items.filter((id) => !productIds.includes(id));
+        return items.length === state.items.length ? state : { items };
       }),
       markHydrated: () => set({ hydrated: true }),
     }),

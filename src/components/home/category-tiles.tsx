@@ -48,10 +48,7 @@ export function CategoryTiles({ categories }: { categories: readonly HomeCategor
               </span>
             ) : null}
             <span className={styles.label}>
-              <span className={styles.name}>
-                {category.name}
-                <small>{category.note}</small>
-              </span>
+              <span className={styles.name}>{category.name}</span>
               <span className={styles.arrow} aria-hidden="true">
                 <ArrowUpRightIcon />
               </span>

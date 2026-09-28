@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
-import { categoryKey, usedCategoriesByIds } from "@/lib/catalog/categories";
+import { getStoreCategories } from "@/lib/crm/catalog";
+import { categoryKey } from "@/lib/catalog/categories";
 import { publicSiteUrl } from "@/lib/site-url";
 
 const STATIC_PATHS = [
@@ -8,6 +8,7 @@ const STATIC_PATHS = [
   "/legal/offer", "/legal/terms", "/legal/privacy", "/legal/payment",
 ];
 
+/** Статичні сторінки й категорії. Товари — окремо, по сторінці CRM: `/product/sitemap/[id].xml`. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = publicSiteUrl();
   const url = (path: string) => new URL(path, base).toString();
@@ -21,25 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const [categories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
-    for (const category of usedCategoriesByIds(
-      categories,
-      catalog.models.flatMap((model) => model.categoryIds),
-    )) {
+    for (const category of await getStoreCategories()) {
       entries.push({
         url: url(`/catalog/${encodeURIComponent(categoryKey(category))}`),
         changeFrequency: "weekly",
         priority: 0.8,
-      });
-    }
-
-    for (const model of catalog.models) {
-      const lastModified = new Date(model.updatedAt);
-      entries.push({
-        url: url(`/product/${encodeURIComponent(model.id)}`),
-        lastModified: Number.isNaN(lastModified.getTime()) ? undefined : lastModified,
-        changeFrequency: "weekly",
-        priority: 0.7,
       });
     }
   } catch {

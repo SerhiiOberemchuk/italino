@@ -1,18 +1,15 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CatalogContent } from "../catalog-content";
-import { categoryBranchIds, categoryKey, findCategory, usedCategoriesByIds } from "@/lib/catalog/categories";
-import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
+import { categoryKey, findCategory } from "@/lib/catalog/categories";
+import { getStoreCategories } from "@/lib/crm/catalog";
 import styles from "../../shop.module.css";
 
 async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[category]">) {
   const { category: key } = await params;
-  const [allCategories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
-  const categories = usedCategoriesByIds(allCategories, catalog.models.flatMap((model) => model.categoryIds));
-  const category = findCategory(categories, key);
+  const category = findCategory(await getStoreCategories(), key);
   if (!category) notFound();
 
-  const categoryIds = [...categoryBranchIds(categories, category.id)];
   return (
     <>
       <div className={styles.hero}>
@@ -20,10 +17,8 @@ async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[ca
       </div>
       <CatalogContent
         searchParams={searchParams}
-        categoryIds={categoryIds}
+        category={category}
         basePath={`/catalog/${encodeURIComponent(categoryKey(category))}`}
-        catalog={catalog}
-        categories={categories}
       />
     </>
   );

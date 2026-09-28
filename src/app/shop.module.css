@@ -98,6 +98,7 @@
 .pagerLink:hover { border-color: var(--ink); }
 .pagerMuted { color: var(--ink-50); border-color: var(--ink-10); cursor: default; }
 .pagerInfo { color: var(--ink-70); font-size: 14px; font-variant-numeric: tabular-nums; }
+.subcategories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .lightbox { position: fixed; inset: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; margin: 0; padding: 0; border: 0; background: transparent; }
 .lightbox::backdrop { background: rgb(20 17 15 / 0.92); }
 .lightboxImage { position: relative; width: min(92vw, 900px); height: min(78vh, 900px); margin: 8vh auto 0; overflow: hidden; border-radius: var(--radius-lg); background: var(--white); touch-action: none; }

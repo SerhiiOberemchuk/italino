@@ -6,39 +6,51 @@ import { resolveFavoriteProducts } from "./actions";
 import { ProductCard } from "@/components/catalog/product-card";
 import type { ProductCard as ProductCardModel } from "@/lib/catalog/product-cards";
 import { useFavoritesStore } from "@/lib/favorites";
+import { FAVORITES_PAGE_SIZE } from "@/lib/favorites-page";
 import styles from "../shop.module.css";
 
 export default function FavoritesPage() {
   const hydrated = useFavoritesStore((state) => state.hydrated);
   const favorites = useFavoritesStore((state) => state.items);
-  const reconcile = useFavoritesStore((state) => state.reconcile);
-  const requestKey = favorites.join("\u0000");
+  const forget = useFavoritesStore((state) => state.forget);
+  const [requestedPage, setRequestedPage] = useState(1);
+  // Завантажуємо лише поточну сторінку добірки, а не всі збережені моделі.
+  const pageCount = Math.max(1, Math.ceil(favorites.length / FAVORITES_PAGE_SIZE));
+  const page = Math.min(requestedPage, pageCount);
+  const requestKey = favorites.slice((page - 1) * FAVORITES_PAGE_SIZE, page * FAVORITES_PAGE_SIZE).join("\u0000");
   const [result, setResult] = useState<{ key: string; products: ProductCardModel[] }>({ key: "", products: [] });
   const [error, setError] = useState<{ key: string; message: string }>({ key: "", message: "" });
   const [loading, startTransition] = useTransition();
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!favorites.length) return;
+    if (!requestKey) return;
 
+    const ids = requestKey.split("\u0000");
     let ignore = false;
     startTransition(async () => {
       try {
-        const current = await resolveFavoriteProducts(favorites);
+        const current = await resolveFavoriteProducts(ids);
         if (ignore) return;
         setResult({ key: requestKey, products: current });
         setError({ key: requestKey, message: "" });
-        reconcile(current.map((product) => product.id));
+        const found = new Set(current.map((product) => product.id));
+        const missing = ids.filter((id) => !found.has(id));
+        if (missing.length) forget(missing);
       } catch {
         if (!ignore) setError({ key: requestKey, message: "Не вдалося оновити улюблені товари. Спробуйте ще раз." });
       }
     });
     return () => { ignore = true; };
-  }, [favorites, hydrated, reconcile, requestKey]);
+  }, [forget, hydrated, requestKey]);
 
   const products = result.key === requestKey ? result.products : [];
   const loadError = error.key === requestKey ? error.message : "";
   const visibleProducts = products.filter((product) => favorites.includes(product.id));
+  const goTo = (next: number) => {
+    setRequestedPage(next);
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <main className={`wrap ${styles.page}`}>
@@ -56,6 +68,27 @@ export default function FavoritesPage() {
           <div className={styles.grid}>
             {visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}
           </div>
+          {pageCount > 1 ? (
+            <nav className={styles.pager} aria-label="Сторінки добірки">
+              <button
+                type="button"
+                className={`${styles.pagerLink} ${page > 1 ? "" : styles.pagerMuted}`}
+                disabled={page <= 1}
+                onClick={() => goTo(page - 1)}
+              >
+                ← Назад
+              </button>
+              <span className={styles.pagerInfo}>{page} / {pageCount}</span>
+              <button
+                type="button"
+                className={`${styles.pagerLink} ${page < pageCount ? "" : styles.pagerMuted}`}
+                disabled={page >= pageCount}
+                onClick={() => goTo(page + 1)}
+              >
+                Далі →
+              </button>
+            </nav>
+          ) : null}
         </>
       ) : (
         <div className={styles.success}>

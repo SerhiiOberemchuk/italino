@@ -103,16 +103,6 @@
   }
 }
 
-.name small {
-  font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 0;
-  color: var(--ink-50);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .arrow {
   display: grid;
   place-items: center;

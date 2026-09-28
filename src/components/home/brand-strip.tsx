@@ -4,15 +4,6 @@ import { ArrowRightIcon } from "@/components/ui/icons";
 import type { CatalogBrand } from "@/lib/catalog/brands";
 import styles from "./brand-strip.module.css";
 
-function modelLabel(count: number): string {
-  const remainder100 = count % 100;
-  const remainder10 = count % 10;
-  if (remainder100 >= 11 && remainder100 <= 14) return `${count} моделей`;
-  if (remainder10 === 1) return `${count} модель`;
-  if (remainder10 >= 2 && remainder10 <= 4) return `${count} моделі`;
-  return `${count} моделей`;
-}
-
 export function BrandStrip({ brands }: { brands: readonly CatalogBrand[] }) {
   if (!brands.length) return null;
 
@@ -49,7 +40,6 @@ export function BrandStrip({ brands }: { brands: readonly CatalogBrand[] }) {
                 ) : <span className={styles.placeholder}>{brand.name.charAt(0)}</span>}
               </Link>
               <div className={styles.body}>
-                <p className={styles.tagline}>{modelLabel(brand.modelCount)}</p>
                 <h3>
                   <Link href={brand.href}>{brand.name}</Link>
                 </h3>

@@ -23,6 +23,12 @@ export type ProductCard = {
   discountPercent: number | null;
 };
 
+/** Картка сторінки каталогу: ще й категорії (плитки головної) та `updatedAt` (sitemap). */
+export type CatalogCard = ProductCard & {
+  categoryIds: string[];
+  updatedAt: string;
+};
+
 const LETTER_SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"];
 
 function sizeRank(size: string): number {
@@ -40,7 +46,7 @@ export function sortSizes(sizes: Iterable<string>): string[] {
   );
 }
 
-export function toProductCards(products: readonly CrmProduct[]): ProductCard[] {
+export function toProductCards(products: readonly CrmProduct[]): CatalogCard[] {
   const groups = new Map<string, CrmProduct[]>();
   for (const product of products) {
     if (product.status !== "active") continue;
@@ -72,7 +78,7 @@ export function toProductCards(products: readonly CrmProduct[]): ProductCard[] {
         : `/product/${encodeURIComponent(key)}`) as Route,
       name: lead.name,
       brand: lead.brand?.name ?? null,
-      image: lead.images[0]?.url ?? null,
+      image: lead.images[0]?.url ?? rows.find((row) => row.images[0])?.images[0]?.url ?? null,
       imageAlt: lead.name,
       price,
       compareAtPrice,
@@ -81,6 +87,8 @@ export function toProductCards(products: readonly CrmProduct[]): ProductCard[] {
       sizes: sortSizes(rows.flatMap((row) => (row.size ? [row.size] : []))),
       badge: discountPercent ? "sale" : isNew ? "new" : null,
       discountPercent,
+      categoryIds: [...new Set(rows.flatMap((row) => (row.category?.id ? [row.category.id] : [])))],
+      updatedAt: rows.reduce((latest, row) => (row.updatedAt > latest ? row.updatedAt : latest), lead.updatedAt),
     };
   });
 }

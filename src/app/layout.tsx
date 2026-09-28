@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Onest, Playfair_Display } from "next/font/google";
-import { Suspense } from "react";
-import { connection } from "next/server";
 // Глобальні стилі — до компонентів: їхні CSS-модулі мають перекривати глобальні.
 import "./globals.css";
 import Script from "next/script";
@@ -14,9 +12,6 @@ import { StoreHydrator } from "@/components/store-hydrator";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { publicSiteUrl } from "@/lib/site-url";
 import { STORE } from "@/lib/store";
-import { usedCategoriesByIds } from "@/lib/catalog/categories";
-import { getStoreCatalog, getStoreCategories } from "@/lib/crm/catalog";
-import type { CrmCategory } from "@/lib/crm/types";
 import { merchantPolicies } from "@/lib/seo/merchant-policies";
 
 // Display: високий контраст штрихів у дусі італійських дідонів (Bodoni), з повною українською кирилицею.
@@ -82,22 +77,6 @@ export const viewport: Viewport = {
   themeColor: "#fff7ee",
 };
 
-async function loadFooterCategories(): Promise<CrmCategory[]> {
-  try {
-    const [categories, catalog] = await Promise.all([getStoreCategories(), getStoreCatalog()]);
-    return usedCategoriesByIds(categories, catalog.models.flatMap((model) => model.categoryIds));
-  } catch (error) {
-    console.error("[CRM footer categories]", error instanceof Error ? error.message : "Unknown error");
-    return [];
-  }
-}
-
-async function LiveSiteFooter() {
-  await connection();
-  const categories = await loadFooterCategories();
-  return <SiteFooter categories={categories} />;
-}
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="uk" className={`${display.variable} ${body.variable}`}>
@@ -110,9 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AnnouncementBar />
         <SiteHeader />
         {children}
-        <Suspense fallback={<SiteFooter categories={[]} />}>
-          <LiveSiteFooter />
-        </Suspense>
+        <SiteFooter />
       </body>
     </html>
   );

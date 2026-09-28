@@ -28,6 +28,17 @@ const nextConfig: NextConfig = {
         hostname: "w99cualo4tspebtl.public.blob.vercel-storage.com",
         pathname: "/workspaces/tbjcDiJpZCs065xbRAjUi0kiZBVS0d3O/products/**",
       },
+      // Власні фото категорій і брендів із CRM.
+      {
+        protocol: "https",
+        hostname: "w99cualo4tspebtl.public.blob.vercel-storage.com",
+        pathname: "/workspaces/tbjcDiJpZCs065xbRAjUi0kiZBVS0d3O/categories/**",
+      },
+      {
+        protocol: "https",
+        hostname: "w99cualo4tspebtl.public.blob.vercel-storage.com",
+        pathname: "/workspaces/tbjcDiJpZCs065xbRAjUi0kiZBVS0d3O/brands/**",
+      },
     ],
   },
 };

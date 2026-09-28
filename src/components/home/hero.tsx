@@ -15,7 +15,8 @@ const TINT_CLASS: Record<CategoryTint, string> = {
 
 type Props = {
   showcase: readonly (HomeCategory & { image: string })[];
-  modelCount: number;
+  /** Моделей у каталозі; `null` — CRM ще не віддає цю кількість. */
+  modelCount: number | null;
 };
 
 function modelsLabel(count: number): string {
@@ -53,7 +54,7 @@ export function Hero({ showcase, modelCount }: Props) {
             </Link>
           </div>
           <dl className={styles.stats}>
-            {modelCount > 0 ? (
+            {modelCount ? (
               <div>
                 <dt>У каталозі</dt>
                 <dd>{modelsLabel(modelCount)}</dd>
@@ -83,10 +84,7 @@ export function Hero({ showcase, modelCount }: Props) {
                     sizes="(min-width: 1024px) 22vw, 45vw"
                   />
                 </span>
-                <span className={styles.tileLabel}>
-                  {item.name}
-                  <small>{item.note}</small>
-                </span>
+                <span className={styles.tileLabel}>{item.name}</span>
               </Link>
             </li>
           ))}
