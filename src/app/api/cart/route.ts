@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         color: product.color,
         size: product.size,
         quantity,
-        href: `/product/${encodeURIComponent(key)}`,
+        href: `/product/${encodeURIComponent(key)}?sku=${encodeURIComponent(sku)}`,
         maxQuantity: product.stock,
       }];
     });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { getCapabilities } from "@/lib/crm/catalog";
@@ -8,6 +9,8 @@ import styles from "../shop.module.css";
 export const metadata: Metadata = { title: "Оформлення замовлення" };
 
 async function Content() {
+  // Checkout capabilities must come from CRM at request time when the shared cache is cold.
+  await connection();
   const capabilities = await getCapabilities();
   const rozetkapay = capabilities.payments.filter((method) => method.key === ROZETKAPAY_PAYMENT_KEY && method.paymentLink);
   return (

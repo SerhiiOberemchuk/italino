@@ -21,6 +21,10 @@ type CatalogShellProps = {
   children: ReactNode;
 };
 
+function filterKey(path: string, query: string, brand: string, sort: SortValue): string {
+  return `${path}\u0000${query.trim()}\u0000${brand}\u0000${sort}`;
+}
+
 export function CatalogShell({
   basePath,
   brands,
@@ -37,20 +41,34 @@ export function CatalogShell({
   const [query, setQuery] = useState(initialQuery);
   const [brand, setBrand] = useState(initialBrand);
   const [sort, setSort] = useState<SortValue>(initialSort);
-  const committedFiltersRef = useRef(`${basePath}\u0000${initialQuery}\u0000${initialBrand}\u0000${initialSort}`);
+  const committedFiltersRef = useRef(filterKey(basePath, initialQuery, initialBrand, initialSort));
+  const requestedFiltersRef = useRef<string | null>(null);
 
   // Cache Components зберігають цей клієнтський shell між навігаціями.
   // Синхронізація потрібна для переходів Back/Forward і посилань пагінації.
   useEffect(() => {
-    const committedFilters = `${basePath}\u0000${initialQuery}\u0000${initialBrand}\u0000${initialSort}`;
+    const committedFilters = filterKey(basePath, initialQuery, initialBrand, initialSort);
     if (committedFiltersRef.current === committedFilters) return;
 
-    committedFiltersRef.current = committedFilters;
+    const requestedFilters = requestedFiltersRef.current;
+    if (requestedFilters !== null) {
+      // Ignore an older RSC response when a newer debounced filter request is in flight.
+      if (requestedFilters !== committedFilters) return;
+      requestedFiltersRef.current = null;
+      committedFiltersRef.current = committedFilters;
+      // Do not overwrite text typed while the matching server response was travelling.
+      if (filterKey(categoryPath, query, brand, sort) !== committedFilters) return;
+    } else {
+      // Back/Forward and direct links are authoritative when there is no local request in flight.
+      committedFiltersRef.current = committedFilters;
+    }
+    // URL navigation is external state (Back/Forward, pagination, direct links); this is its subscription boundary.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCategoryPath(basePath);
     setQuery(initialQuery);
     setBrand(initialBrand);
     setSort(initialSort);
-  }, [basePath, initialBrand, initialQuery, initialSort]);
+  }, [basePath, brand, categoryPath, initialBrand, initialQuery, initialSort, query, sort]);
 
   useEffect(() => {
     const normalizedQuery = query.trim();
@@ -78,6 +96,7 @@ export function CatalogShell({
       const nextSearch = next.toString();
       if (categoryPath === basePath && nextSearch === searchParams.toString()) return;
 
+      requestedFiltersRef.current = filterKey(categoryPath, normalizedQuery, brand, sort);
       startTransition(() => {
         const href = (nextSearch ? `${categoryPath}?${nextSearch}` : categoryPath) as Route;
         router.replace(href, { scroll: false });

@@ -11,9 +11,15 @@ const MAX_BUCKETS = 10_000;
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 /** Ключ клієнта за заголовками проксі; за відсутності — спільний кошик «unknown». */
+type HeaderReader = Pick<Headers, "get">;
+
+export function clientKeyFromHeaders(headers: HeaderReader): string {
+  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || headers.get("x-real-ip")?.trim() || "unknown";
+}
+
 export function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip")?.trim() || "unknown";
+  return clientKeyFromHeaders(request.headers);
 }
 
 export function allowRequest(key: string, limit: number): boolean {

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { submitCheckout, type CheckoutActionState } from "@/app/checkout/actions";
 import { NovaPoshtaFields } from "@/components/checkout/nova-poshta-fields";
 import { NextDispatchDate } from "@/components/home/dispatch-clock";
 import { CardMarks } from "@/components/ui/payment-marks";
@@ -23,15 +24,38 @@ type Props = {
   freeShippingFrom: number | null;
 };
 
-type CheckoutResult = { orderId?: string; paymentUrl?: string; error?: string };
+const INITIAL_CHECKOUT_STATE: CheckoutActionState = { status: "idle" };
+const CHECKOUT_ATTEMPT_KEY = "italino-checkout-attempt-v1";
+
+function cartFingerprint(items: ReturnType<typeof useCartStore.getState>["items"]): string {
+  return JSON.stringify(items.map(({ sku, quantity, price, currency }) => ({ sku, quantity, price, currency })));
+}
+
+function checkoutAttempt(fingerprint: string): string {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(CHECKOUT_ATTEMPT_KEY) ?? "null") as {
+      id?: unknown;
+      fingerprint?: unknown;
+    } | null;
+    const id = stored?.fingerprint === fingerprint && typeof stored.id === "string"
+      ? stored.id
+      : crypto.randomUUID();
+    sessionStorage.setItem(CHECKOUT_ATTEMPT_KEY, JSON.stringify({ id, fingerprint }));
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
 
 export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Props) {
   const router = useRouter();
   const hydrated = useCartStore((state) => state.hydrated);
   const items = useCartStore((state) => state.items);
+  const setItems = useCartStore((state) => state.setItems);
   const clearCart = useCartStore((state) => state.clear);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
+  const [state, formAction, pending] = useActionState(submitCheckout, INITIAL_CHECKOUT_STATE);
+  const handledOrder = useRef<string | null>(null);
+  const attemptInput = useRef<HTMLInputElement>(null);
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const selected = SHIPPING_METHODS[0];
@@ -39,51 +63,32 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
   const paymentAvailable = payments.some((method) => method.key === ROZETKAPAY_PAYMENT_KEY);
   const belowMinimum = minOrderAmount !== null && total < minOrderAmount;
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    trackEvent("checkout_submit");
-    setPending(true);
-    setError("");
-    const values = Object.fromEntries(new FormData(event.currentTarget));
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: {
-            firstName: values.firstName,
-            lastName: values.lastName,
-            phone: values.phone,
-            email: values.email,
-            city: values.city,
-          },
-          delivery: {
-            carrier: values.shipping,
-            branch: values.branch,
-            cityRef: values.cityRef,
-            branchRef: values.branchRef,
-            comment: values.comment,
-          },
-          payment: values.payment,
-          items: items.map(({ sku, quantity }) => ({ sku, quantity })),
-        }),
-      });
-      const result = await response.json() as CheckoutResult;
-      if (!response.ok || !result.orderId) throw new Error(result.error ?? "Не вдалося створити замовлення.");
-      trackEvent("order_created", { currency: "UAH", value: total });
-      clearCart();
-      // Платіжне посилання далі бере сторінка замовлення з CRM — на випадок,
-      // якщо покупець повернеться до неї з іншого пристрою чи вкладки.
-      if (result.paymentUrl) {
-        window.location.assign(result.paymentUrl);
-        return;
-      }
-      router.push(`/order/${encodeURIComponent(result.orderId)}`);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Не вдалося створити замовлення.");
-      setPending(false);
+  useEffect(() => {
+    if (!hydrated || !items.length) return;
+    if (attemptInput.current) attemptInput.current.value = checkoutAttempt(cartFingerprint(items));
+  }, [hydrated, items]);
+
+  useEffect(() => {
+    if (state.status === "cart_changed" && state.items) {
+      setItems(state.items);
+      return;
     }
-  }
+    if (state.status !== "success" || !state.orderId || handledOrder.current === state.orderId) return;
+
+    handledOrder.current = state.orderId;
+    trackEvent("order_created", { currency: "UAH", value: state.total ?? total });
+    try {
+      sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
+    } catch {
+      // Замовлення вже створене; недоступне сховище не повинно блокувати перехід.
+    }
+    clearCart();
+    if (state.paymentUrl) {
+      window.location.assign(state.paymentUrl);
+      return;
+    }
+    router.push(`/order/${encodeURIComponent(state.orderId)}`);
+  }, [clearCart, router, setItems, state, total]);
 
   if (!hydrated) return <p className={styles.empty}>Завантажуємо кошик…</p>;
   if (!items.length) {
@@ -92,7 +97,23 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
 
   return (
     // Ім’я, телефон, e-mail і відділення не мають потрапляти в записи Clarity.
-    <form className={styles.checkoutLayout} onSubmit={submit} data-clarity-mask="True">
+    <form
+      className={styles.checkoutLayout}
+      action={formAction}
+      onSubmit={() => {
+        if (attemptInput.current && !attemptInput.current.value) {
+          attemptInput.current.value = checkoutAttempt(cartFingerprint(items));
+        }
+        trackEvent("checkout_submit");
+      }}
+      data-clarity-mask="True"
+    >
+      <input ref={attemptInput} type="hidden" name="attemptId" defaultValue="" />
+      <input
+        type="hidden"
+        name="items"
+        value={JSON.stringify(items.map(({ sku, quantity, price, currency }) => ({ sku, quantity, price, currency })))}
+      />
       <div className={styles.form}>
         <section className={styles.section}>
           <h2>1. Контакти</h2>
@@ -154,7 +175,7 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
           )}
         </section>
 
-        {error ? <p className={styles.error} role="alert">{error}</p> : null}
+        {state.message ? <p className={styles.error} role="alert">{state.message}</p> : null}
       </div>
 
       <aside className={styles.summary}>
@@ -194,7 +215,7 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
           <Link href="/returns" target="_blank">Обмін і повернення</Link>
         </p>
         <label className={styles.consent}>
-          <input type="checkbox" required />
+          <input type="checkbox" name="consent" value="accepted" required />
           <span>
             Погоджуюся з <Link href="/legal/offer" target="_blank">публічною офертою</Link> та{" "}
             <Link href="/legal/privacy" target="_blank">політикою конфіденційності</Link>.

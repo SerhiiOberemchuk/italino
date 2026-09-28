@@ -198,8 +198,13 @@ export async function getCapabilities() {
  * з тегом `capabilities`.
  */
 export async function getFreeShippingThreshold(): Promise<number | null> {
+  "use cache: remote";
+  cacheLife({ stale: 300, revalidate: 300, expire: 3_600 });
+  cacheTag("capabilities");
   try {
-    const { cart } = await getCapabilities();
+    // Keep the fallback inside the cached scope. Cache Components surface a rejected
+    // cached call during prerender even when an uncached caller tries to catch it.
+    const { cart } = (await crmGet<CrmCapabilities>("capabilities")).data;
     return cart.currency === "UAH" && typeof cart.freeShippingThreshold === "number"
       ? cart.freeShippingThreshold
       : null;

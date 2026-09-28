@@ -56,7 +56,7 @@ export function toProductCards(products: readonly CrmProduct[]): ProductCard[] {
       if (row.price === null) continue;
       if (cheapest.price === null || row.price < cheapest.price) cheapest = row;
     }
-    const lead = rows.find((row) => row.images.length > 0) ?? rows[0];
+    const lead = cheapest;
     const price = cheapest.price;
     const compareAtPrice = cheapest.compareAtPrice;
     const discountPercent =
@@ -67,7 +67,9 @@ export function toProductCards(products: readonly CrmProduct[]): ProductCard[] {
 
     return {
       id: key,
-      href: `/product/${encodeURIComponent(key)}` as Route,
+      href: (cheapest.sku
+        ? `/product/${encodeURIComponent(key)}?sku=${encodeURIComponent(cheapest.sku)}`
+        : `/product/${encodeURIComponent(key)}`) as Route,
       name: lead.name,
       brand: lead.brand?.name ?? null,
       image: lead.images[0]?.url ?? null,

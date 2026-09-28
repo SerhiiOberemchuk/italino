@@ -11,6 +11,9 @@ export type CatalogModel = ProductCard & {
   variantCount: number;
   salePrice: number | null;
   saleCompareAtPrice: number | null;
+  saleSku: string | null;
+  saleImage: string | null;
+  saleCurrency: string | null;
 };
 
 export type StoreCatalog = {
@@ -24,6 +27,7 @@ type MutableModel = {
   brand: string | null;
   brandId: string | null;
   image: string | null;
+  sku: string | null;
   price: number | null;
   compareAtPrice: number | null;
   currency: string;
@@ -36,6 +40,9 @@ type MutableModel = {
   hasNewTag: boolean;
   salePrice: number | null;
   saleCompareAtPrice: number | null;
+  saleSku: string | null;
+  saleImage: string | null;
+  saleCurrency: string | null;
 };
 
 function discountPercent(price: number | null, compareAtPrice: number | null): number | null {
@@ -67,6 +74,7 @@ export function createCatalogIndexBuilder() {
           brand: product.brand?.name?.trim() || null,
           brandId: product.brand?.id ?? null,
           image: product.images[0]?.url ?? null,
+          sku: product.sku,
           price: product.price,
           compareAtPrice: product.compareAtPrice,
           currency: product.currency,
@@ -79,6 +87,9 @@ export function createCatalogIndexBuilder() {
           hasNewTag: false,
           salePrice: null,
           saleCompareAtPrice: null,
+          saleSku: null,
+          saleImage: null,
+          saleCurrency: null,
         };
         models.set(id, model);
       }
@@ -101,6 +112,8 @@ export function createCatalogIndexBuilder() {
         model.price = product.price;
         model.compareAtPrice = product.compareAtPrice;
         model.currency = product.currency;
+        model.sku = product.sku;
+        model.image = product.images[0]?.url ?? null;
       }
 
       if (
@@ -111,6 +124,9 @@ export function createCatalogIndexBuilder() {
       ) {
         model.salePrice = product.price;
         model.saleCompareAtPrice = product.compareAtPrice;
+        model.saleSku = product.sku;
+        model.saleImage = product.images[0]?.url ?? null;
+        model.saleCurrency = product.currency;
       }
     }
   };
@@ -121,7 +137,9 @@ export function createCatalogIndexBuilder() {
       const percent = discountPercent(model.price, model.compareAtPrice);
       return {
         id: model.id,
-        href: `/product/${encodeURIComponent(model.id)}` as Route,
+        href: (model.sku
+          ? `/product/${encodeURIComponent(model.id)}?sku=${encodeURIComponent(model.sku)}`
+          : `/product/${encodeURIComponent(model.id)}`) as Route,
         name: model.name,
         brand: model.brand,
         brandId: model.brandId,
@@ -140,6 +158,9 @@ export function createCatalogIndexBuilder() {
         variantCount: model.variantCount,
         salePrice: model.salePrice,
         saleCompareAtPrice: model.saleCompareAtPrice,
+        saleSku: model.saleSku,
+        saleImage: model.saleImage,
+        saleCurrency: model.saleCurrency,
       };
     }),
   });
@@ -152,8 +173,13 @@ export function saleCard(model: CatalogModel): ProductCard {
   const percent = discountPercent(model.salePrice, model.saleCompareAtPrice);
   return {
     ...model,
+    href: (model.saleSku
+      ? `/product/${encodeURIComponent(model.id)}?sku=${encodeURIComponent(model.saleSku)}`
+      : model.href) as Route,
+    image: model.saleImage,
     price: model.salePrice,
     compareAtPrice: model.saleCompareAtPrice,
+    currency: model.saleCurrency ?? model.currency,
     badge: percent ? "sale" : null,
     discountPercent: percent,
   };

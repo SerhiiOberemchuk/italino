@@ -43,7 +43,7 @@ export function ProductCard({ product }: { product: ProductCardModel }) {
         className={isFavorite ? `${styles.wish} ${styles.wishActive}` : styles.wish}
         aria-label={isFavorite ? "Прибрати з улюблених" : "Додати в улюблені"}
         aria-pressed={isFavorite}
-        onClick={() => toggleFavorite(product)}
+        onClick={() => toggleFavorite(product.id)}
       >
         <HeartIcon />
       </button>

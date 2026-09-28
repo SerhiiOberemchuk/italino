@@ -2,32 +2,30 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ProductCard } from "@/lib/catalog/product-cards";
 import { storageWithLegacyArray } from "@/lib/persisted";
 
 export const FAVORITES_STORAGE_KEY = "italino-favorites-v2";
 const LEGACY_FAVORITES_STORAGE_KEY = "italino-favorites-v1";
-const FAVORITES_VERSION = 2;
-
-/** У добірці зберігається вся картка — сторінка `/favorites` малює її без запиту в CRM. */
-export type FavoriteProduct = ProductCard;
+const FAVORITES_VERSION = 3;
 
 type FavoritesStore = {
-  items: FavoriteProduct[];
+  items: string[];
   /** false, доки не прочитано localStorage: перший рендер має збігтися з SSR. */
   hydrated: boolean;
-  toggle: (product: FavoriteProduct) => void;
+  toggle: (productId: string) => void;
+  reconcile: (productIds: string[]) => void;
   markHydrated: () => void;
 };
 
-function validFavorites(value: unknown): FavoriteProduct[] {
+function validFavorites(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is FavoriteProduct => {
-    const candidate = item as Partial<FavoriteProduct>;
-    return typeof candidate.id === "string"
-      && typeof candidate.href === "string"
-      && typeof candidate.name === "string";
-  });
+  return [...new Set(value.flatMap((item) => {
+    if (typeof item === "string" && item) return [item];
+    if (item && typeof item === "object" && typeof (item as { id?: unknown }).id === "string") {
+      return [(item as { id: string }).id];
+    }
+    return [];
+  }))].slice(0, 500);
 }
 
 export const useFavoritesStore = create<FavoritesStore>()(
@@ -35,11 +33,17 @@ export const useFavoritesStore = create<FavoritesStore>()(
     (set) => ({
       items: [],
       hydrated: false,
-      toggle: (product) => set((state) => ({
-        items: state.items.some((item) => item.id === product.id)
-          ? state.items.filter((item) => item.id !== product.id)
-          : [product, ...state.items],
+      toggle: (productId) => set((state) => ({
+        items: state.items.includes(productId)
+          ? state.items.filter((item) => item !== productId)
+          : [productId, ...state.items],
       })),
+      reconcile: (productIds) => set((state) => {
+        const items = validFavorites(productIds);
+        return items.length === state.items.length && items.every((id, index) => id === state.items[index])
+          ? state
+          : { items };
+      }),
       markHydrated: () => set({ hydrated: true }),
     }),
     {
@@ -60,7 +64,7 @@ export const useFavoritesStore = create<FavoritesStore>()(
  * лише тоді, коли змінився стан саме її сердечка.
  */
 export function useIsFavorite(productId: string): boolean {
-  return useFavoritesStore((state) => state.items.some((item) => item.id === productId));
+  return useFavoritesStore((state) => state.items.includes(productId));
 }
 
 /** Кількість улюблених моделей для реактивних індикаторів інтерфейсу. */
