@@ -13,6 +13,11 @@ export type CatalogCategoryLink = {
   depth: number;
 };
 
+/** Пункт навігації каталогу: фільтр категорій, заголовок, підкатегорії. */
+export type CatalogNavCategory = CatalogCategoryLink & {
+  parentId: string | null;
+};
+
 export type HomeCategory = CatalogCategoryLink & {
   image: string | null;
   tint: CategoryTint;
@@ -48,30 +53,47 @@ export function rootCategories(categories: readonly CrmCategory[]): CrmCategory[
   return categories.filter((category) => !category.parentId || !ids.has(category.parentId));
 }
 
-export function categoryLinks(categories: readonly CrmCategory[]): CatalogCategoryLink[] {
+export function categoryLinks(categories: readonly CrmCategory[]): CatalogNavCategory[] {
   const children = new Map<string | null, CrmCategory[]>();
   const ids = new Set(categories.map((category) => category.id));
+  const parentOf = (category: CrmCategory) =>
+    category.parentId && ids.has(category.parentId) ? category.parentId : null;
 
   for (const category of categories) {
-    const parent = category.parentId && ids.has(category.parentId) ? category.parentId : null;
+    const parent = parentOf(category);
     const siblings = children.get(parent);
     if (siblings) siblings.push(category);
     else children.set(parent, [category]);
   }
 
-  const links: CatalogCategoryLink[] = [];
+  const links: CatalogNavCategory[] = [];
   const visit = (category: CrmCategory, depth: number) => {
     links.push({
       id: category.id,
       name: category.name,
       href: `/catalog/${encodeURIComponent(categoryKey(category))}` as Route,
       depth,
+      parentId: parentOf(category),
     });
     for (const child of children.get(category.id) ?? []) visit(child, depth + 1);
   };
 
   for (const root of children.get(null) ?? []) visit(root, 0);
   return links;
+}
+
+function decodePath(path: string): string {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
+}
+
+/** Категорія за адресою `/catalog/<key>`; для `/catalog` та невідомих адрес — `undefined`. */
+export function categoryByPath<T extends CatalogCategoryLink>(links: readonly T[], path: string): T | undefined {
+  const decoded = decodePath(path);
+  return links.find((link) => decodePath(link.href) === decoded);
 }
 
 /**

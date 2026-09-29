@@ -37,6 +37,10 @@
   --tint-tomato: #ffe3da;
   --tint-mint: #d9f5e6;
 
+  /* Скелетони: однаково помітні на кремовому фоні й на білих плитках */
+  --skeleton: rgb(20 17 15 / 0.07);
+  --skeleton-shine: rgb(255 255 255 / 0.55);
+
   /* Шрифти (змінні --font-playfair / --font-onest задає next/font у layout) */
   --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
   --font-body: var(--font-onest), system-ui, -apple-system, "Segoe UI", sans-serif;

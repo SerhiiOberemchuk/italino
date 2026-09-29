@@ -10,14 +10,13 @@ import { WhyItalino } from "@/components/home/why-italino";
 import { brandLinks } from "@/lib/catalog/brands";
 import { homeCategories, type HomeCategory } from "@/lib/catalog/categories";
 import { catalogQuery, getCatalogPage, getStoreBrands, getStoreCategories } from "@/lib/crm/catalog";
-import { connection } from "next/server";
 
 function reportCrmError(scope: string, error: unknown) {
   console.error(scope, error instanceof Error ? error.message : "Unknown error");
 }
 
 export default async function HomePage() {
-  await connection();
+  // Усі дані головної — з кешу CRM, тож сторінка пререндериться й оновлюється за cacheLife.
   // Товари головної — це перша сторінка каталогу (той самий запис кешу, що й /catalog),
   // а не окреме завантаження.
   const [categoryResult, brandResult, catalogResult] = await Promise.allSettled([

@@ -4,19 +4,36 @@
 .hero { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 36px; }
 .hero h1 { max-width: 850px; font-family: var(--font-display); font-size: clamp(38px, 6vw, 72px); font-weight: 500; line-height: 1; }
 .hero p { max-width: 600px; color: var(--ink-70); line-height: 1.6; }
+.catalogHero { display: grid; align-items: end; gap: 14px 32px; }
+.catalogHero h1 { text-wrap: balance; }
 .catalogLayout { display: grid; gap: 32px; }
-.filters { display: grid; height: fit-content; align-self: start; gap: 14px; align-content: start; padding: 20px; border: 1px solid var(--ink-10); border-radius: var(--radius-lg); background: var(--white); }
+/* Каталог: панель фільтрів. Скелетон фільтрів (.controlSkeleton) повторює геометрію полів. */
+.filters { height: fit-content; align-self: start; padding: 20px; border: 1px solid var(--ink-10); border-radius: var(--radius-lg); background: var(--white); scroll-margin-top: 96px; }
+.filtersForm { display: grid; gap: 14px; align-content: start; }
 .filters label, .field { display: grid; gap: 7px; font-size: 13px; font-weight: 600; }
+/* Поля фільтрів — 16px: однаково з кастомним селектом і без автозбільшення на iOS. */
+.filters .input { min-height: 48px; border-radius: 12px; font-size: 16px; font-weight: 400; }
+.filters .input:hover { border-color: var(--ink); }
 .nativeSelect { position: relative; display: block; }
-.nativeSelect select { width: 100%; min-height: 48px; appearance: none; padding: 10px 38px 10px 14px; border: 1px solid var(--ink-10); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; font-weight: 400; cursor: pointer; }
+.nativeSelect select { width: 100%; min-height: 48px; appearance: none; padding: 10px 38px 10px 14px; border: 1px solid var(--ink-10); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; font-size: 16px; font-weight: 400; cursor: pointer; }
 .nativeSelect select:hover { border-color: var(--ink); }
 .nativeSelect select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-.nativeSelect > span { position: absolute; top: 50%; right: 17px; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
-.catalogResults { position: relative; min-width: 0; }
+.nativeSelect > span, .controlChevron { position: absolute; top: 50%; right: 17px; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.controlSkeleton { position: relative; display: flex; min-height: 48px; align-items: center; padding: 10px 38px 10px 14px; border: 1px solid var(--ink-10); border-radius: 12px; background: var(--white); font-size: 16px; font-weight: 400; }
+/* Каталог: результати. Під час переходу старі товари спершу притемнюються; якщо відповідь
+   затримується довше за .24s — на їхнє місце стає скелетон, і швидкі відповіді не блимають ним. */
+.catalogResults { position: relative; min-width: 0; scroll-margin-top: 96px; }
+.resultsFrame { position: relative; }
 .resultsContent { transition: opacity .16s var(--ease); }
-.catalogResults[data-pending="true"] .resultsContent { opacity: .55; }
-.resultsStatus { position: absolute; z-index: 2; top: 0; right: 0; padding: 4px 9px; border-radius: var(--radius-pill); background: var(--ink); color: var(--white); font-size: 12px; font-weight: 600; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity .16s var(--ease), transform .16s var(--ease); }
-.catalogResults[data-pending="true"] .resultsStatus { opacity: 1; transform: translateY(0); }
+.resultsFrame[data-pending] { animation: results-hold 0s linear .24s forwards; }
+.resultsFrame[data-pending] .resultsContent { opacity: .5; animation: results-conceal 0s linear .24s forwards; }
+.resultsPending { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; animation: results-reveal .2s var(--ease) .24s forwards; }
+@keyframes results-hold { to { min-height: min(70vh, 640px); } }
+@keyframes results-conceal { to { visibility: hidden; } }
+@keyframes results-reveal { to { opacity: 1; } }
+.resultsCount { margin-bottom: 16px; color: var(--ink-70); line-height: 1.6; font-variant-numeric: tabular-nums; }
+.emptyAction { margin-top: 18px; color: var(--ink); }
+.heroCrumb:hover { text-decoration: underline; text-underline-offset: 3px; }
 .input, .textarea { width: 100%; min-height: 46px; padding: 10px 13px; border: 1px solid var(--ink-10); border-radius: 10px; background: var(--white); color: var(--ink); font: inherit; }
 .textarea { min-height: 90px; resize: vertical; }
 .input:focus, .textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
@@ -110,5 +127,6 @@
 .lightboxNavPrev { left: 18px; }
 .lightboxNavNext { right: 18px; }
 .lightboxCounter { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); padding: 6px 12px; border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.92); color: var(--ink); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (min-width: 768px) { .catalogHero { grid-template-columns: minmax(0, 1fr) minmax(0, 340px); } }
 @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 20px; } .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .catalogLayout { grid-template-columns: 240px 1fr; align-items: start; } .filters { position: sticky; top: 96px; } .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .product { grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); } .details { position: sticky; top: 110px; } .cartLayout, .checkoutLayout { grid-template-columns: minmax(0, 1fr) 360px; } .summary { position: sticky; top: 110px; } }

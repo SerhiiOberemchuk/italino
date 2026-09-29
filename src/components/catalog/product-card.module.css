@@ -170,6 +170,18 @@
   color: var(--ink-70);
 }
 
+/* Скелетон картки: та сама плитка й ті самі рядки, лише без даних */
+.media > .mediaSkeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background: rgb(20 17 15 / 0.035);
+}
+
+.wishSkeleton {
+  pointer-events: none;
+}
+
 .sizes {
   display: flex;
   flex-wrap: wrap;

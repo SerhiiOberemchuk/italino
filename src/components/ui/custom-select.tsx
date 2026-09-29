@@ -98,7 +98,7 @@ export function CustomSelect<Value extends string>({
           }
         }}
       >
-        <span id={`${id}-value`}>{selected?.label}</span>
+        <span className={styles.value} id={`${id}-value`}>{selected?.label}</span>
         <span className={styles.chevron} aria-hidden="true" />
       </button>
       {open ? (

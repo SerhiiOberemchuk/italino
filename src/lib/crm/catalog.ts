@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
+import { CATALOG_PAGE_SIZE } from "@/lib/catalog/page-size";
 import { modelCard, type CatalogCard } from "@/lib/catalog/product-cards";
 import { crmGet, CrmError } from "./client";
 import type {
@@ -15,8 +16,6 @@ import type {
   CrmProductList,
 } from "./types";
 
-/** Моделей на сторінці каталогу. Жодна сторінка сайту не читає весь склад. */
-export const CATALOG_PAGE_SIZE = 24;
 /** Моделей в одному товарному sitemap-файлі (максимум CRM). */
 export const SITEMAP_PAGE_SIZE = 100;
 /** Максимум CRM для `keys`: обране читається одним запитом. */

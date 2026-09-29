@@ -1,5 +1,5 @@
-import { connection } from "next/server";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { OrderStatus } from "@/components/checkout/order-status";
 import { getFreeShippingThreshold } from "@/lib/crm/catalog";
 import { CrmError } from "@/lib/crm/client";
@@ -7,8 +7,7 @@ import { getStoreOrderStatus } from "@/lib/crm/orders";
 import { qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import styles from "../../shop.module.css";
 
-export default async function Page({ params }: PageProps<"/order/[orderId]">) {
-  await connection();
+async function Order({ params }: PageProps<"/order/[orderId]">) {
   const { orderId } = await params;
   let order;
   try {
@@ -20,5 +19,15 @@ export default async function Page({ params }: PageProps<"/order/[orderId]">) {
   // Поріг читаємо поточний: він задається в CRM і змінюється рідко.
   const freeFrom = order.currency === "UAH" ? await getFreeShippingThreshold() : null;
   const freeShipping = qualifiesForFreeShipping(Number(order.totalAmount), freeFrom);
-  return <main className={`wrap ${styles.page}`}><OrderStatus initialOrder={order} freeShipping={freeShipping} /></main>;
+  return <OrderStatus initialOrder={order} freeShipping={freeShipping} />;
+}
+
+export default function Page(props: PageProps<"/order/[orderId]">) {
+  return (
+    <main className={`wrap ${styles.page}`}>
+      <Suspense fallback={<p className={styles.empty}>Завантажуємо замовлення…</p>}>
+        <Order {...props} />
+      </Suspense>
+    </main>
+  );
 }

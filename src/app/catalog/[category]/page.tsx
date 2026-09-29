@@ -1,35 +1,38 @@
-import { Suspense } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CatalogContent } from "../catalog-content";
 import { categoryKey, findCategory } from "@/lib/catalog/categories";
 import { getStoreCategories } from "@/lib/crm/catalog";
-import styles from "../../shop.module.css";
+import { CatalogResults, CatalogResultsSlot } from "../catalog-results";
 
-async function CategoryCatalog({ params, searchParams }: PageProps<"/catalog/[category]">) {
+export async function generateMetadata({ params }: PageProps<"/catalog/[category]">): Promise<Metadata> {
   const { category: key } = await params;
+  const category = findCategory(await getStoreCategories(), key);
+  if (!category) return {};
+  return {
+    title: category.name,
+    description: `${category.name}: актуальні ціни й наявність зі складу ITALINO.`,
+  };
+}
+
+async function CategoryResults({ params, searchParams }: PageProps<"/catalog/[category]">) {
+  const [{ category: key }, query] = await Promise.all([params, searchParams]);
   const category = findCategory(await getStoreCategories(), key);
   if (!category) notFound();
 
   return (
-    <>
-      <div className={styles.hero}>
-        <div><p className="eyebrow">Каталог</p><h1>{category.name}</h1></div>
-      </div>
-      <CatalogContent
-        searchParams={searchParams}
-        category={category}
-        basePath={`/catalog/${encodeURIComponent(categoryKey(category))}`}
-      />
-    </>
+    <CatalogResults
+      params={query}
+      category={category}
+      basePath={`/catalog/${encodeURIComponent(categoryKey(category))}`}
+    />
   );
 }
 
-export default function CategoryPage({ params, searchParams }: PageProps<"/catalog/[category]">) {
+/** Шапка з назвою категорії й фільтри — у `../layout.tsx`; тут лише результати. */
+export default function CategoryPage(props: PageProps<"/catalog/[category]">) {
   return (
-    <main className={`wrap ${styles.page}`}>
-      <Suspense fallback={<p className={styles.empty}>Завантажуємо…</p>}>
-        <CategoryCatalog params={params} searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <CatalogResultsSlot>
+      <CategoryResults {...props} />
+    </CatalogResultsSlot>
   );
 }
