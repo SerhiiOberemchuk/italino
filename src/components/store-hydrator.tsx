@@ -14,7 +14,7 @@ export function StoreHydrator() {
     /*
      * Прапорець піднімаємо і тоді, коли сховище віддало помилку: zustand у
      * такому разі викликає onRehydrateStorage без стану, і вітрина назавжди
-     * лишилася б на «Завантажуємо…».
+     * лишилася б на скелетонах.
      */
     async function hydrate(rehydrate: () => Promise<void> | void, markHydrated: () => void) {
       try {

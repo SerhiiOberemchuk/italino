@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { resolveFavoriteProducts } from "./actions";
 import { ProductCard } from "@/components/catalog/product-card";
+import { ProductCardSkeleton } from "@/components/catalog/product-card-skeleton";
 import type { ProductCard as ProductCardModel } from "@/lib/catalog/product-cards";
 import { useFavoritesStore } from "@/lib/favorites";
 import { FAVORITES_PAGE_SIZE } from "@/lib/favorites-page";
@@ -46,6 +47,10 @@ export default function FavoritesPage() {
 
   const products = result.key === requestKey ? result.products : [];
   const loadError = error.key === requestKey ? error.message : "";
+  // Поточна сторінка ще не прийшла (зокрема кадр між гідрацією й запитом) — заготовки,
+  // а не порожній стан. До гідрації кількість невідома: один ряд.
+  const waiting = !hydrated || (favorites.length > 0 && result.key !== requestKey && !loadError);
+  const skeletonCount = hydrated ? requestKey.split("\u0000").length : 3;
   const visibleProducts = products.filter((product) => favorites.includes(product.id));
   const goTo = (next: number) => {
     setRequestedPage(next);
@@ -58,13 +63,18 @@ export default function FavoritesPage() {
         <div><p className="eyebrow">Добірка</p><h1>Улюблені товари</h1></div>
         <p>Збережіть моделі, щоб повернутися до них пізніше.</p>
       </div>
-      {!hydrated || (loading && !products.length && favorites.length > 0) ? (
-        <p className={styles.empty}>Завантажуємо добірку…</p>
+      {waiting ? (
+        <>
+          <p className="sr-only" role="status">Завантажуємо добірку…</p>
+          <div className={styles.grid} aria-hidden="true">
+            {Array.from({ length: skeletonCount }, (_, index) => <ProductCardSkeleton key={index} />)}
+          </div>
+        </>
       ) : loadError ? (
         <p className={styles.error} role="alert">{loadError}</p>
       ) : favorites.length && visibleProducts.length ? (
         <>
-          {loading ? <p className={styles.notice} role="status">Оновлюємо добірку…</p> : null}
+          <p className="sr-only" role="status">{loading ? "Оновлюємо добірку…" : ""}</p>
           <div className={styles.grid}>
             {visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}
           </div>

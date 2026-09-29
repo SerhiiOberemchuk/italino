@@ -1,141 +1,170 @@
 "use client";
 
-import Image from "next/image";
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import Image, { getImageProps } from "next/image";
+import { useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import Lightbox, { type Labels } from "yet-another-react-lightbox";
+import Counter from "yet-another-react-lightbox/plugins/counter";
+import Inline from "yet-another-react-lightbox/plugins/inline";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+import "yet-another-react-lightbox/plugins/counter.css";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useVariantSelection } from "@/components/catalog/variant-selection";
 import { galleryFor } from "@/lib/catalog/variants";
-import styles from "@/app/shop.module.css";
+import styles from "./product-gallery.module.css";
 
-/** Свайп коротший за це — випадковий дотик, не намір гортати фото. */
-const SWIPE_THRESHOLD_PX = 40;
+const STAGE_SIZES = "(min-width: 1024px) 50vw, 100vw";
+/** Вказівник зсунувся далі — це був свайп каруселі, а не клік по фото. */
+const CLICK_SLOP_PX = 8;
 
-function CloseGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <path d="M6 6l12 12M18 6 6 18" />
-    </svg>
-  );
-}
-
-function ChevronGlyph({ direction }: { direction: "prev" | "next" }) {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {direction === "prev" ? <path d="m15 6-6 6 6 6" /> : <path d="m9 6 6 6-6 6" />}
-    </svg>
-  );
-}
+const LABELS: Labels = {
+  Previous: "Попереднє фото",
+  Next: "Наступне фото",
+  Close: "Закрити перегляд",
+  Lightbox: "Перегляд фото товару",
+  Carousel: "карусель",
+  Slide: "фото",
+  "Photo gallery": "Фото товару",
+  "{index} of {total}": "{index} з {total}",
+  "Zoom in": "Збільшити",
+  "Zoom out": "Зменшити",
+};
 
 /**
- * Галерея обраного артикула + повноекранний перегляд (нативний `<dialog>`).
- * Фото залежить від вибору в BuyBox через спільний `VariantSelectionProvider`
- * — компонент нічого не приймає пропсами, окрім того, що читає з контексту.
+ * Галерея обраного артикула: карусель на сторінці й повноекранний перегляд
+ * із зумом (yet-another-react-lightbox). Обидві ділять один індекс, тож
+ * перегляд відкривається на тому фото, яке видно, і повертає на те, де закрили.
+ * Фото залежить від вибору в BuyBox через спільний `VariantSelectionProvider`.
  */
 export function ProductGallery() {
   const { variants, selected } = useVariantSelection();
   const images = galleryFor(variants, selected);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const pointerStartX = useRef<number | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
-  // Новий варіант — нова галерея; попередній відкритий індекс міг вказувати за
-  // її межі. Скидаємо синхронно під час рендеру (без ефекту), як радять React
-  // docs для «adjusting state when a prop changes» — інакше секунда з
-  // невірним індексом устигає промайнути на екрані.
+  // Новий варіант — нова галерея; попередній індекс міг вказувати за її межі.
+  // Скидаємо синхронно під час рендеру (без ефекту), як радять React docs для
+  // «adjusting state when a prop changes».
   const [trackedVariantId, setTrackedVariantId] = useState(selected.id);
   if (trackedVariantId !== selected.id) {
     setTrackedVariantId(selected.id);
-    setActiveIndex(0);
+    setIndex(0);
   }
 
   if (!images.length) return null;
 
-  function step(delta: number) {
-    setActiveIndex((current) => (current + delta + images.length) % images.length);
+  const current = Math.min(index, images.length - 1);
+  const single = images.length < 2;
+  const alt = (position: number) => `${selected.name}${position ? ` — фото ${position + 1}` : ""}`;
+  const slides = images.map((src, position) => ({ src, alt: alt(position) }));
+  // Повноекранний перегляд і зум — з оптимізатора Next (WebP/AVIF), а не з оригіналу CDN.
+  const viewerSlides = images.map((src, position) => ({
+    src: getImageProps({ src, alt: alt(position), fill: true, sizes: "100vw", quality: 85 }).props.src,
+    alt: alt(position),
+  }));
+  const hideWhenSingle = single ? { buttonPrev: () => null, buttonNext: () => null } : {};
+
+  function rememberPointer(event: ReactPointerEvent) {
+    pointerStart.current = { x: event.clientX, y: event.clientY };
   }
 
-  function openAt(index: number) {
-    setActiveIndex(index);
-    dialogRef.current?.showModal();
-  }
-
-  function close() {
-    dialogRef.current?.close();
-  }
-
-  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    pointerStartX.current = event.clientX;
-  }
-
-  function onPointerUp(event: ReactPointerEvent<HTMLDivElement>) {
-    const start = pointerStartX.current;
-    pointerStartX.current = null;
-    if (start === null) return;
-    const delta = event.clientX - start;
-    if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return;
-    step(delta > 0 ? -1 : 1);
+  function openViewer(event: ReactMouseEvent) {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > CLICK_SLOP_PX) return;
+    setViewerOpen(true);
   }
 
   return (
-    <>
-      <div className={styles.gallery}>
-        {images.map((src, index) => (
-          <button
-            type="button"
-            key={`${src}-${index}`}
-            className={`${styles.galleryItem} ${styles.galleryButton}`}
-            onClick={() => openAt(index)}
-            aria-label={`Відкрити фото ${index + 1} з ${images.length}`}
-          >
-            <Image
-              src={src}
-              alt={`${selected.name}${index ? ` — фото ${index + 1}` : ""}`}
-              fill
-              sizes="(min-width: 1024px) 35vw, 50vw"
-              priority={index === 0}
-            />
-          </button>
-        ))}
+    <div className={styles.gallery}>
+      <div className={styles.stage}>
+        {/* Постер: поточне фото вже в HTML, до гідрації й вимірювання каруселі. Альт — у слайдів. */}
+        <Image
+          src={images[current]}
+          alt=""
+          aria-hidden
+          fill
+          sizes={STAGE_SIZES}
+          className={styles.image}
+          loading="eager"
+          fetchPriority="high"
+        />
+        <Lightbox
+          plugins={[Inline]}
+          inline={{ className: styles.carousel }}
+          slides={slides}
+          index={current}
+          on={{ view: ({ index: next }) => setIndex(next) }}
+          carousel={{ finite: single, padding: 0, spacing: 0, imageFit: "contain", preload: 1 }}
+          labels={LABELS}
+          render={{
+            ...hideWhenSingle,
+            slide: ({ slide, offset }) => (
+              <button
+                type="button"
+                className={styles.open}
+                aria-label={`Відкрити на весь екран: ${slide.alt ?? selected.name}`}
+                onPointerDown={rememberPointer}
+                onClick={openViewer}
+              >
+                <Image
+                  src={slide.src}
+                  alt={slide.alt ?? ""}
+                  fill
+                  sizes={STAGE_SIZES}
+                  className={styles.image}
+                  loading={offset === 0 ? "eager" : "lazy"}
+                  draggable={false}
+                />
+              </button>
+            ),
+          }}
+        />
       </div>
 
-      <dialog
-        ref={dialogRef}
-        className={styles.lightbox}
-        aria-label={`Перегляд фото товару «${selected.name}»`}
-        onClick={(event) => {
-          // Клік по самому <dialog> (не по його вмісту) — це клік «за межами» фото.
-          if (event.target === dialogRef.current) close();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowLeft") step(-1);
-          if (event.key === "ArrowRight") step(1);
-        }}
-      >
-        <button type="button" className={styles.lightboxClose} onClick={close} aria-label="Закрити перегляд">
-          <CloseGlyph />
-        </button>
-
-        <div className={styles.lightboxImage} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-          <Image
-            key={images[activeIndex]}
-            src={images[activeIndex]}
-            alt={`${selected.name} — фото ${activeIndex + 1}`}
-            fill
-            sizes="90vw"
-          />
+      {single ? null : (
+        <div className={styles.thumbs} role="group" aria-label="Мініатюри фото">
+          {images.map((src, position) => (
+            <button
+              type="button"
+              key={`${src}-${position}`}
+              className={position === current ? `${styles.thumb} ${styles.thumbActive}` : styles.thumb}
+              aria-label={`Фото ${position + 1} з ${images.length}`}
+              aria-current={position === current}
+              onClick={() => setIndex(position)}
+            >
+              <Image src={src} alt="" fill sizes="72px" />
+            </button>
+          ))}
         </div>
+      )}
 
-        {images.length > 1 ? (
-          <>
-            <button type="button" className={`${styles.lightboxNav} ${styles.lightboxNavPrev}`} onClick={() => step(-1)} aria-label="Попереднє фото">
-              <ChevronGlyph direction="prev" />
-            </button>
-            <button type="button" className={`${styles.lightboxNav} ${styles.lightboxNavNext}`} onClick={() => step(1)} aria-label="Наступне фото">
-              <ChevronGlyph direction="next" />
-            </button>
-            <p className={styles.lightboxCounter} aria-live="polite">{activeIndex + 1} / {images.length}</p>
-          </>
-        ) : null}
-      </dialog>
-    </>
+      <Lightbox
+        open={viewerOpen}
+        close={() => setViewerOpen(false)}
+        index={current}
+        slides={viewerSlides}
+        on={{ view: ({ index: next }) => setIndex(next) }}
+        plugins={[Zoom, Counter]}
+        carousel={{ finite: single }}
+        controller={{ closeOnBackdropClick: true, closeOnPullDown: true }}
+        labels={LABELS}
+        counter={{ separator: "з" }}
+        className={styles.viewer}
+        render={hideWhenSingle}
+      />
+    </div>
+  );
+}
+
+/** Скелетон галереї: головне фото є завжди, мініатюри — не в кожної моделі. */
+export function ProductGallerySkeleton() {
+  return (
+    <div className={styles.gallery} aria-hidden="true">
+      <div className={styles.stage}>
+        <Skeleton variant="block" className={styles.skeleton} />
+      </div>
+    </div>
   );
 }

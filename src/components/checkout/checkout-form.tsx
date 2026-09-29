@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { Suspense, use, useActionState, useEffect, useRef } from "react";
 import { submitCheckout, type CheckoutActionState } from "@/app/checkout/actions";
 import { NovaPoshtaFields } from "@/components/checkout/nova-poshta-fields";
 import { NextDispatchDate } from "@/components/home/dispatch-clock";
 import { CardMarks } from "@/components/ui/payment-marks";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { CrmCapabilityMethod } from "@/lib/crm/types";
@@ -17,12 +18,16 @@ import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/f
 import { trackEvent } from "@/lib/analytics";
 import styles from "@/app/shop.module.css";
 
-type Props = {
+export type CheckoutCapabilities = {
   payments: CrmCapabilityMethod[];
   minOrderAmount: number | null;
   /** Поріг безкоштовної доставки з CRM; `null` — не задано. */
   freeShippingFrom: number | null;
 };
+
+/** Можливості CRM приходять промісом: форма малюється одразу, залежні блоки — у своїх `<Suspense>`. */
+type Props = { capabilities: Promise<CheckoutCapabilities> };
+type CapabilitiesProps = { capabilities: Promise<CheckoutCapabilities> };
 
 const INITIAL_CHECKOUT_STATE: CheckoutActionState = { status: "idle" };
 const CHECKOUT_ATTEMPT_KEY = "italino-checkout-attempt-v1";
@@ -47,7 +52,77 @@ function checkoutAttempt(fingerprint: string): string {
   }
 }
 
-export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Props) {
+function hasOnlinePayment(payments: CrmCapabilityMethod[]): boolean {
+  return payments.some((method) => method.key === ROZETKAPAY_PAYMENT_KEY);
+}
+
+function PaymentOptions({ capabilities }: CapabilitiesProps) {
+  if (!hasOnlinePayment(use(capabilities).payments)) {
+    return <p className={styles.error}>Онлайн-оплата тимчасово недоступна. Спробуйте пізніше.</p>;
+  }
+  return (
+    <>
+      <label className={styles.radio}>
+        <input type="radio" name="payment" value={ROZETKAPAY_PAYMENT_KEY} defaultChecked required />
+        <span>
+          <strong>Онлайн-оплата карткою</strong><br />
+          <small>Visa, Mastercard, ПРОСТІР; Apple Pay і Google Pay — якщо доступні на платіжній сторінці RozetkaPay</small>
+        </span>
+      </label>
+      <CardMarks />
+    </>
+  );
+}
+
+function PaymentOptionsSkeleton() {
+  return (
+    <div className={styles.radio} aria-hidden="true">
+      <span className={styles.radioSkeleton}>
+        <Skeleton width="11em" />
+        <br />
+        <small><Skeleton width="92%" /></small>
+      </span>
+    </div>
+  );
+}
+
+type SummaryProps = CapabilitiesProps & { total: number; hydrated: boolean };
+
+function DeliveryCost({ capabilities, total, hydrated }: SummaryProps) {
+  const { freeShippingFrom } = use(capabilities);
+  const freeShipping = qualifiesForFreeShipping(total, freeShippingFrom);
+  return (
+    <>
+      <div className={styles.summaryRow}>
+        <span>Доставка Новою Поштою</span>
+        {!hydrated ? <span><Skeleton width="7em" /></span> : freeShipping ? <strong>безкоштовно</strong> : <span>при отриманні</span>}
+      </div>
+      {hydrated && freeShippingFrom !== null && !freeShipping ? (
+        <p className={styles.lineMeta}>
+          Ще {formatPrice(amountToFreeShipping(total, freeShippingFrom), "UAH")} — і доставка буде безкоштовною.
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+function MinimumNotice({ capabilities, total, hydrated }: SummaryProps) {
+  const { minOrderAmount } = use(capabilities);
+  if (!hydrated || minOrderAmount === null || total >= minOrderAmount) return null;
+  return <p className={styles.error}>Мінімальна сума — {formatPrice(minOrderAmount, "UAH")}</p>;
+}
+
+function SubmitButton({ capabilities, total, hydrated, pending }: SummaryProps & { pending: boolean }) {
+  const { payments, minOrderAmount } = use(capabilities);
+  const belowMinimum = minOrderAmount !== null && total < minOrderAmount;
+  return (
+    <button className={styles.primary} disabled={!hydrated || pending || !hasOnlinePayment(payments) || belowMinimum}>
+      {pending ? "Створюємо…" : "Перейти до оплати"}
+    </button>
+  );
+}
+
+export function CheckoutForm({ capabilities }: Props) {
   const router = useRouter();
   const hydrated = useCartStore((state) => state.hydrated);
   const items = useCartStore((state) => state.items);
@@ -59,9 +134,6 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const selected = SHIPPING_METHODS[0];
-  const freeShipping = qualifiesForFreeShipping(total, freeShippingFrom);
-  const paymentAvailable = payments.some((method) => method.key === ROZETKAPAY_PAYMENT_KEY);
-  const belowMinimum = minOrderAmount !== null && total < minOrderAmount;
 
   useEffect(() => {
     if (!hydrated || !items.length) return;
@@ -90,8 +162,8 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
     router.push(`/order/${encodeURIComponent(state.orderId)}`);
   }, [clearCart, router, setItems, state, total]);
 
-  if (!hydrated) return <p className={styles.empty}>Завантажуємо кошик…</p>;
-  if (!items.length) {
+  // До прочитання localStorage форма вже на місці, а рядки й суми кошика — заготовки.
+  if (hydrated && !items.length) {
     return <div className={styles.empty}>Кошик порожній. Поверніться до каталогу та додайте товар.</div>;
   }
 
@@ -159,20 +231,9 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
 
         <section className={styles.section}>
           <h2>3. Оплата</h2>
-          {paymentAvailable ? (
-            <>
-              <label className={styles.radio}>
-                <input type="radio" name="payment" value={ROZETKAPAY_PAYMENT_KEY} defaultChecked required />
-                <span>
-                  <strong>Онлайн-оплата карткою</strong><br />
-                  <small>Visa, Mastercard, ПРОСТІР; Apple Pay і Google Pay — якщо доступні на платіжній сторінці RozetkaPay</small>
-                </span>
-              </label>
-              <CardMarks />
-            </>
-          ) : (
-            <p className={styles.error}>Онлайн-оплата тимчасово недоступна. Спробуйте пізніше.</p>
-          )}
+          <Suspense fallback={<PaymentOptionsSkeleton />}>
+            <PaymentOptions capabilities={capabilities} />
+          </Suspense>
         </section>
 
         {state.message ? <p className={styles.error} role="alert">{state.message}</p> : null}
@@ -180,21 +241,24 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
 
       <aside className={styles.summary}>
         <h2>Разом</h2>
-        {items.map((item) => (
+        {hydrated ? items.map((item) => (
           <div className={styles.summaryRow} key={item.sku}>
             <span>{item.name} × {item.quantity}</span>
             <strong>{formatPrice(item.price * item.quantity, item.currency)}</strong>
           </div>
+        )) : [0, 1].map((index) => (
+          <div className={styles.summaryRow} key={index} aria-hidden="true">
+            <span className={styles.summaryItemSkeleton}><Skeleton width="100%" /></span>
+            <strong><Skeleton width="4em" /></strong>
+          </div>
         ))}
-        <div className={styles.summaryRow}>
-          <span>Доставка Новою Поштою</span>
-          {freeShipping ? <strong>безкоштовно</strong> : <span>при отриманні</span>}
-        </div>
-        {freeShippingFrom !== null && !freeShipping ? (
-          <p className={styles.lineMeta}>
-            Ще {formatPrice(amountToFreeShipping(total, freeShippingFrom), "UAH")} — і доставка буде безкоштовною.
-          </p>
-        ) : null}
+        <Suspense fallback={(
+          <div className={styles.summaryRow}>
+            <span>Доставка Новою Поштою</span><span><Skeleton width="7em" /></span>
+          </div>
+        )}>
+          <DeliveryCost capabilities={capabilities} total={total} hydrated={hydrated} />
+        </Suspense>
         <div className={styles.summaryRow}>
           <span>Відправка з Мілана</span>
           <strong><NextDispatchDate fallback={SCHEDULE_COPY.dispatchOn} /></strong>
@@ -203,11 +267,11 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
           Отримання Новою Поштою — {SCHEDULE_COPY.transit} після відправки, зазвичай {SCHEDULE_COPY.arrivalOn}.
         </p>
         <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-          <span>До сплати</span><strong>{formatPrice(total, "UAH")}</strong>
+          <span>До сплати</span><strong>{hydrated ? formatPrice(total, "UAH") : <Skeleton width="4.5em" />}</strong>
         </div>
-        {belowMinimum ? (
-          <p className={styles.error}>Мінімальна сума — {formatPrice(minOrderAmount ?? 0, "UAH")}</p>
-        ) : null}
+        <Suspense fallback={null}>
+          <MinimumNotice capabilities={capabilities} total={total} hydrated={hydrated} />
+        </Suspense>
         <p className={styles.terms}>
           Повна сума списується з картки одразу під час оплати. Оплачене замовлення можна скасувати до відправки
           з Мілана, а товар — повернути протягом 14 днів після отримання.{" "}
@@ -221,9 +285,9 @@ export function CheckoutForm({ payments, minOrderAmount, freeShippingFrom }: Pro
             <Link href="/legal/privacy" target="_blank">політикою конфіденційності</Link>.
           </span>
         </label>
-        <button className={styles.primary} disabled={pending || !paymentAvailable || belowMinimum}>
-          {pending ? "Створюємо…" : "Перейти до оплати"}
-        </button>
+        <Suspense fallback={<button className={styles.primary} disabled>Перейти до оплати</button>}>
+          <SubmitButton capabilities={capabilities} total={total} hydrated={hydrated} pending={pending} />
+        </Suspense>
         <p className={styles.lineMeta}>Після створення замовлення відкриється захищена платіжна сторінка RozetkaPay.</p>
       </aside>
     </form>

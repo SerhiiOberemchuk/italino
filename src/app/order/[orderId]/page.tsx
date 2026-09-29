@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { OrderStatus } from "@/components/checkout/order-status";
+import { OrderStatusSkeleton } from "@/components/checkout/order-status-skeleton";
 import { getFreeShippingThreshold } from "@/lib/crm/catalog";
 import { CrmError } from "@/lib/crm/client";
 import { getStoreOrderStatus } from "@/lib/crm/orders";
@@ -25,7 +26,7 @@ async function Order({ params }: PageProps<"/order/[orderId]">) {
 export default function Page(props: PageProps<"/order/[orderId]">) {
   return (
     <main className={`wrap ${styles.page}`}>
-      <Suspense fallback={<p className={styles.empty}>Завантажуємо замовлення…</p>}>
+      <Suspense fallback={<OrderStatusSkeleton />}>
         <Order {...props} />
       </Suspense>
     </main>

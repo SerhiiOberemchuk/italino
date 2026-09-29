@@ -1,0 +1,116 @@
+.gallery {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Біла плитка 1:1 з тонкою рамкою, packshot вписаний з відступом — як у карток каталогу */
+.stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid var(--ink-10);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.image {
+  object-fit: contain;
+  padding: 7%;
+}
+
+/*
+ * Карусель (yet-another-react-lightbox, Inline) лежить поверх постера — звичайного
+ * next/image поточного фото, який є в HTML ще до гідрації. Слайди білі й без
+ * проміжків, тож щойно карусель змонтувалась, постер під нею не видно.
+ */
+.stage > .carousel {
+  position: absolute;
+  inset: 0;
+  --yarl__container_background_color: transparent;
+  --yarl__color_button: var(--ink);
+  --yarl__color_button_active: var(--tomato);
+  --yarl__color_button_disabled: var(--ink-50);
+  --yarl__button_filter: none;
+  --yarl__button_background_color: rgb(255 255 255 / 0.92);
+  --yarl__button_border: 1px solid var(--ink-10);
+  --yarl__button_margin: 0 12px;
+  --yarl__navigation_button_padding: 9px;
+  --yarl__icon_size: 22px;
+}
+
+.carousel :global(.yarl__slide) {
+  background: var(--white);
+}
+
+.carousel :global(.yarl__button) {
+  border-radius: var(--radius-pill);
+}
+
+.open {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+/* Мініатюри: гортаються вбік, якщо фото багато */
+.thumbs {
+  display: flex;
+  gap: 8px;
+  margin: -2px;
+  padding: 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.thumb {
+  position: relative;
+  flex: 0 0 72px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--ink-10);
+  border-radius: 14px;
+  background: var(--white);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.thumb:hover {
+  border-color: rgb(20 17 15 / 0.35);
+}
+
+.thumbActive,
+.thumbActive:hover {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.thumb img {
+  object-fit: contain;
+  padding: 10%;
+}
+
+/* Повноекранний перегляд: темне тло, як і раніше; фото на білій плитці */
+.viewer {
+  --yarl__color_backdrop: rgb(20 17 15 / 0.94);
+}
+
+.viewer :global(.yarl__slide_image) {
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+/* Скелетон: та сама плитка, заготовка — на місці фото */
+.stage > .skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background: rgb(20 17 15 / 0.035);
+}

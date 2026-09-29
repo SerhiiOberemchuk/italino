@@ -4,10 +4,45 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import styles from "@/app/shop.module.css";
+
+/**
+ * Кошик до того, як його прочитали з localStorage: рядки й суми — заготовки,
+ * сталі підписи підсумку — текстом. Два рядки — найчастіший розмір кошика.
+ */
+function CartSkeleton() {
+  return (
+    <div className={styles.cartLayout} aria-hidden="true">
+      <section className={styles.lines}>
+        {[0, 1].map((index) => (
+          <div className={styles.line} key={index}>
+            <div className={styles.lineImage}><Skeleton variant="block" className={styles.lineImageSkeleton} /></div>
+            <div>
+              <p className={styles.lineName}><Skeleton width="78%" /></p>
+              <p className={styles.lineMeta}><Skeleton width="52%" /></p>
+              <div className={styles.qty}><Skeleton variant="block" width={98} height={30} /></div>
+            </div>
+            <strong><Skeleton width="4em" /></strong>
+          </div>
+        ))}
+      </section>
+
+      <aside className={styles.summary}>
+        <h2>Ваше замовлення</h2>
+        <div className={styles.summaryRow}><span>Товари</span><strong><Skeleton width="4.5em" /></strong></div>
+        <div className={styles.summaryRow}><span>Доставка Новою Поштою</span><span><Skeleton width="8em" /></span></div>
+        <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+          <span>Разом</span><strong><Skeleton width="4.5em" /></strong>
+        </div>
+        <Skeleton variant="round" className={styles.summaryAction} height={50} />
+      </aside>
+    </div>
+  );
+}
 
 /** `freeShippingFrom` — поріг безкоштовної доставки з CRM; `null` — не задано. */
 export function CartPage({ freeShippingFrom }: { freeShippingFrom: number | null }) {
@@ -51,7 +86,7 @@ export function CartPage({ freeShippingFrom }: { freeShippingFrom: number | null
     return () => controller.abort();
   }, [hydrated, setItems]);
 
-  if (!hydrated) return <p className={styles.empty}>Завантажуємо кошик…</p>;
+  if (!hydrated) return <CartSkeleton />;
 
   if (!items.length) {
     return (
