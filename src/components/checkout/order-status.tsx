@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { formatPrice } from "@/lib/format";
+import { formatDateTime, formatPrice } from "@/lib/format";
 import type { StoreOrderStatus } from "@/lib/crm/orders";
 import { STORE } from "@/lib/store";
 import styles from "./order-status.module.css";
@@ -25,11 +25,6 @@ const paymentCopy = {
   failed: "Оплату не завершено",
   refunded: "Кошти повернено",
 } as const;
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : new Intl.DateTimeFormat("uk-UA", { dateStyle: "medium", timeStyle: "short" }).format(date);
-}
 
 export function OrderStatus({ initialOrder, freeShipping }: Props) {
   const [order, setOrder] = useState(initialOrder);
@@ -104,7 +99,7 @@ export function OrderStatus({ initialOrder, freeShipping }: Props) {
       </div>
       <dl className={styles.details}>
         <div><dt>Номер замовлення</dt><dd>{order.number ?? order.orderId}</dd></div>
-        <div><dt>Створено</dt><dd>{formatDate(order.createdAt)}</dd></div>
+        <div><dt>Створено</dt><dd>{formatDateTime(order.createdAt)}</dd></div>
       </dl>
       {/* Після оплати блок працює як квитанція: її можна надрукувати або зберегти в PDF засобами браузера. */}
       <section className={styles.receipt} aria-labelledby="receipt-title">
@@ -137,7 +132,7 @@ export function OrderStatus({ initialOrder, freeShipping }: Props) {
           <div><dt>{amountLabel}</dt><dd>{formatPrice(Number(order.totalAmount), order.currency)}</dd></div>
           {paid ? (
             <>
-              <div><dt>Дата оплати</dt><dd>{order.paidAt ? formatDate(order.paidAt) : "—"}</dd></div>
+              <div><dt>Дата оплати</dt><dd>{order.paidAt ? formatDateTime(order.paidAt) : "—"}</dd></div>
               <div><dt>Спосіб оплати</dt><dd>Онлайн-оплата карткою, RozetkaPay</dd></div>
               <div><dt>Продавець</dt><dd>{STORE.legalName}, РНОКПП {STORE.taxId}</dd></div>
             </>
