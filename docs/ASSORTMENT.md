@@ -145,8 +145,8 @@ ON Summer 2026, ON occasioni e fine serie 25-26.
 ```
 
 У CRM це 54 рядки товару зі спільним `productGroupId = UT23007`. На вітрині —
-**одна картка** з 9 кружечками кольорів і 6 розмірами. Групування робить
-`toProductCards()` (`src/lib/catalog/product-cards.ts`).
+**одна картка** з 9 кружечками кольорів і 6 розмірами. Групує CRM (`GET /models`),
+картку вітрини будує `modelCard()` (`src/lib/catalog/product-cards.ts`).
 
 Наслідки для дизайну:
 - у картці товару **обов'язкові кружечки кольорів** — у шопера Milano їх 23;

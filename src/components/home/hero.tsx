@@ -15,7 +15,7 @@ const TINT_CLASS: Record<CategoryTint, string> = {
 
 type Props = {
   showcase: readonly (HomeCategory & { image: string })[];
-  /** Моделей у каталозі; `null` — CRM ще не віддає цю кількість. */
+  /** Моделей у каталозі; `null` — CRM зараз недоступна. */
   modelCount: number | null;
 };
 

@@ -105,11 +105,11 @@ UT2300702S … UT2300702XXL  (чорний)    ├─► «Худі унісек
 UT2300709S … UT2300709XXL  (нічний)    ┘
 ```
 
-Реалізація — `toProductCards()` у `src/lib/catalog/product-cards.ts`:
-ключ групи = `productGroupId ?? id`; розміри сортуються (літерні за шкалою
-XXS→4XL, числові за значенням); кольори — унікальні значення `color`; ціна
-картки — мінімальна серед рядків; бейдж `sale`, якщо є `compareAtPrice` >
-`price`, інакше `new`, якщо є тег `new`.
+Групує CRM: `GET /models` віддає одну картку на модель, ключ `key` =
+`productGroupId ?? id`. `modelCard()` у `src/lib/catalog/product-cards.ts`
+сортує розміри (літерні за шкалою XXS→4XL, числові за значенням); ціна, фото
+й SKU картки — найдешевшого варіанта (для Sale — найдешевшого акційного);
+бейдж `sale`, якщо `compareAtPrice` > `price`, інакше `new`, якщо є тег `new`.
 
 Адаптер Sipec заповнює це сам: `productGroupId` = код моделі, `color` і `size`
 беруться з атрибутів артикула (`attributo_chiave`), а не з позицій цифр у коді.
@@ -229,23 +229,26 @@ CRM має webhook-доставку (QStash). Схема: CRM → `POST {SITE}/a
 `src/lib/crm/catalog.ts`. Головна читає тільки склад **ITALINO** через
 `warehouseId=OBRIYM_WAREHOUSE_ID`, з `status=active`,
 `storefrontVisibility=visible` та `sort=newest`. Якщо склад не задано, запит
-не виконується, щоб випадково не опублікувати весь каталог workspace. Каталог,
-пошук, фільтри та пагінація — одна сторінка CRM на перегляд (`perPage=100`,
-`q`, `brandId`, `categoryId`, `sort`, `page`), рядки сторінки групуються за
-`productGroupId`. Сторінка товару запитує лише варіанти свого `productGroupId`,
-а кошик/checkout — конкретні SKU. Футер нічого з CRM не читає.
+не виконується, щоб випадково не опублікувати весь каталог workspace.
 
-Що сайт чекає від CRM, щоб прибрати тимчасові обхідні шляхи
-(перехід змінює лише `fetchCatalogPage` і `getStore*` у `src/lib/crm/catalog.ts`):
+| Що на сайті | Запит до CRM |
+| --- | --- |
+| Каталог, категорія, пошук, бренд, Sale, «Новинки» головної | `GET /models?perPage=24&page=N&minPrice=0` + `q`, `brandId`, `categoryId`&`includeSubcategories=true`, `onSale=true`, `sort` |
+| Обране | `GET /models?keys=a,b,c&perPage=<кількість ключів>` (без `perPage` CRM обріже до 24) |
+| Бренди (фільтр, блок на головній) | `GET /models?perPage=1&facets=true&minPrice=0` → `facets.brands`; логотипи — `GET /brands` |
+| Категорії (фільтр, плитки, sitemap) | `GET /categories?withProductCounts=true&warehouseId=` → лише `modelCount > 0` |
+| Товарний sitemap | `GET /models?perPage=100&page=N&minPrice=0` |
+| Сторінка товару | `GET /products?productGroupId=` (лише варіанти однієї моделі) |
+| Кошик, checkout | `GET /products/sku/{sku}` |
 
-- список **моделей** з пагінацією (`pagination.total` = кількість моделей) —
-  зникнуть моделі-дублі на межі сторінок і з'явиться «Знайдено моделей»;
-- `categoryId` разом із підкатегоріями — товари висять лише на листових
-  категоріях, тож батьківська сторінка зараз показує лише перелік підкатегорій;
-- фільтр знижок: сайт уже надсилає `discounted=true` для Sale і відкидає
-  рядки без знижки;
-- `/brands` і `/categories` лише складу `warehouseId` (сайт уже його надсилає);
-  до того сайт перевіряє наявність товару запитом на один рядок.
+Футер нічого з CRM не читає. Картка `/models` віддає ціну, фото й SKU
+найдешевшого варіанта, для Sale — поле `sale` (найдешевший акційний варіант);
+`sizes` приходять без порядку, їх сортує `sortSizes`.
+
+Відомі розбіжності: `/categories` рахує й моделі без ціни (у «Шоперах» 228
+проти 190 з ціною), тож лічильник категорій на вітрині не показується;
+`/brands` не фільтрується за складом (Zara, Puma тощо), тому список брендів —
+із фасетів.
 
 1. У CRM підключити адаптер Sipec (ключ дилера), обрати бренди й категорії,
    задати склад, курс і націнку, запустити імпорт і активувати чернетки.

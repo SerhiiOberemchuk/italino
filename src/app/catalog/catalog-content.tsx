@@ -57,10 +57,10 @@ export async function CatalogContent({ searchParams, category, basePath = "/cata
     q: searchQuery,
     brandId: brand?.id,
     categoryId: category?.id,
-    discounted,
+    onSale: discounted,
   });
 
-  // Фільтри застосовує CRM: один перегляд — одна сторінка CRM, без читання всього складу.
+  // Фільтри застосовує CRM: один перегляд — одна сторінка моделей, без читання всього складу.
   // Невідомий бренд — порожній результат без запиту.
   let result: CatalogPage | null = null;
   if (!brandName || brand) {
@@ -71,13 +71,13 @@ export async function CatalogContent({ searchParams, category, basePath = "/cata
   const cards = result?.cards ?? [];
   const page = result?.page ?? 1;
   const pageCount = result?.pageCount ?? 1;
-  const modelCount = result?.modelCount ?? null;
-  const pageInfo = pageCount > 1 && cards.length ? `сторінка ${page} з ${pageCount}` : "";
+  const modelCount = result?.modelCount ?? 0;
+  const pageInfo = pageCount > 1 && cards.length ? ` · сторінка ${page} з ${pageCount}` : "";
 
   return (
     <CatalogShell
       basePath={basePath}
-      brands={brands.map((item) => item.name)}
+      brands={brands.map((item) => item.name).sort((a, b) => a.localeCompare(b, "uk"))}
       categories={categoryLinks(categories)}
       initialBrand={brandName}
       initialQuery={searchQuery}
@@ -97,24 +97,14 @@ export async function CatalogContent({ searchParams, category, basePath = "/cata
         </nav>
       ) : null}
 
-      {modelCount !== null ? (
-        <p className="section-lead">
-          Знайдено моделей: {modelCount}{pageInfo ? ` · ${pageInfo}` : ""}
-        </p>
-      ) : pageInfo ? (
-        <p className="section-lead">{pageInfo[0].toUpperCase() + pageInfo.slice(1)}</p>
-      ) : null}
+      <p className="section-lead">Знайдено моделей: {modelCount}{pageInfo}</p>
 
       {cards.length ? (
         <div className={styles.grid}>
           {cards.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
       ) : (
-        <p className={styles.empty}>
-          {subcategories.length && !searchQuery && !brandName
-            ? "Оберіть підкатегорію вище."
-            : "За цими параметрами товарів немає."}
-        </p>
+        <p className={styles.empty}>За цими параметрами товарів немає.</p>
       )}
 
       {pageCount > 1 && cards.length ? (

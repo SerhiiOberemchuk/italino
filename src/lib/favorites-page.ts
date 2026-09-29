@@ -1,2 +1,2 @@
 /** Скільки моделей обраного завантажуємо за раз: сторінка, а не весь список. */
-export const FAVORITES_PAGE_SIZE = 12;
+export const FAVORITES_PAGE_SIZE = 24;

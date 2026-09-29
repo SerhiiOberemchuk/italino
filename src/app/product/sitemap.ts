@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { connection } from "next/server";
-import { productSitemapCount, productSitemapEntries } from "@/lib/seo/product-sitemaps";
+import { getSitemapModels } from "@/lib/crm/catalog";
+import { productSitemapCount } from "@/lib/seo/product-sitemaps";
 import { publicSiteUrl } from "@/lib/site-url";
 
-/** `/product/sitemap/[id].xml`: кожен файл — одна сторінка каталогу CRM, а не весь склад. */
+/** `/product/sitemap/[id].xml`: кожен файл — одна сторінка моделей CRM (100), а не весь склад. */
 export async function generateSitemaps() {
   const count = await productSitemapCount();
   return Array.from({ length: count }, (_, id) => ({ id }));
@@ -17,11 +18,11 @@ export default async function sitemap(props: { id: Promise<string> }): Promise<M
 
   const base = publicSiteUrl();
   try {
-    const entries = await productSitemapEntries(id + 1);
-    return entries.map((entry) => {
-      const lastModified = new Date(entry.updatedAt);
+    const models = await getSitemapModels(id + 1);
+    return models.map((model) => {
+      const lastModified = new Date(model.updatedAt);
       return {
-        url: new URL(`/product/${encodeURIComponent(entry.id)}`, base).toString(),
+        url: new URL(`/product/${encodeURIComponent(model.key)}`, base).toString(),
         lastModified: Number.isNaN(lastModified.getTime()) ? undefined : lastModified,
         changeFrequency: "weekly",
         priority: 0.7,

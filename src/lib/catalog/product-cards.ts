@@ -1,11 +1,11 @@
 import type { Route } from "next";
-import type { CrmProduct } from "@/lib/crm/types";
+import type { CrmModel } from "@/lib/crm/types";
 
 /**
  * View-модель картки товару на вітрині.
- * Каталог CRM плоский (один рядок = один артикул «колір × розмір», як у Sipec);
- * тут рядки однієї моделі (спільний `productGroupId`) згортаються в одну картку
- * з переліком кольорів і розмірів.
+ * Каталог CRM плоский (один рядок = один артикул «колір × розмір», як у Sipec),
+ * але `GET /models` уже згортає рядки однієї моделі (спільний `productGroupId`)
+ * в одну картку: ціна, фото й SKU — найдешевшого варіанта, плюс кольори й розміри.
  */
 export type ProductCard = {
   id: string;
@@ -46,49 +46,43 @@ export function sortSizes(sizes: Iterable<string>): string[] {
   );
 }
 
-export function toProductCards(products: readonly CrmProduct[]): CatalogCard[] {
-  const groups = new Map<string, CrmProduct[]>();
-  for (const product of products) {
-    if (product.status !== "active") continue;
-    const key = product.productGroupId ?? product.id;
-    const rows = groups.get(key);
-    if (rows) rows.push(product);
-    else groups.set(key, [product]);
-  }
+function discountPercent(price: number | null, compareAtPrice: number | null): number | null {
+  return price !== null && compareAtPrice !== null && compareAtPrice > price
+    ? Math.round((1 - price / compareAtPrice) * 100)
+    : null;
+}
 
-  return [...groups.entries()].map(([key, rows]) => {
-    let cheapest: CrmProduct = rows[0];
-    for (const row of rows) {
-      if (row.price === null) continue;
-      if (cheapest.price === null || row.price < cheapest.price) cheapest = row;
-    }
-    const lead = cheapest;
-    const price = cheapest.price;
-    const compareAtPrice = cheapest.compareAtPrice;
-    const discountPercent =
-      price !== null && compareAtPrice !== null && compareAtPrice > price
-        ? Math.round((1 - price / compareAtPrice) * 100)
-        : null;
-    const isNew = rows.some((row) => row.tags.includes("new"));
+function productHref(key: string, sku: string | null): Route {
+  return (sku
+    ? `/product/${encodeURIComponent(key)}?sku=${encodeURIComponent(sku)}`
+    : `/product/${encodeURIComponent(key)}`) as Route;
+}
 
-    return {
-      id: key,
-      href: (cheapest.sku
-        ? `/product/${encodeURIComponent(key)}?sku=${encodeURIComponent(cheapest.sku)}`
-        : `/product/${encodeURIComponent(key)}`) as Route,
-      name: lead.name,
-      brand: lead.brand?.name ?? null,
-      image: lead.images[0]?.url ?? rows.find((row) => row.images[0])?.images[0]?.url ?? null,
-      imageAlt: lead.name,
-      price,
-      compareAtPrice,
-      currency: cheapest.currency,
-      colors: [...new Set(rows.flatMap((row) => (row.color ? [row.color] : [])))],
-      sizes: sortSizes(rows.flatMap((row) => (row.size ? [row.size] : []))),
-      badge: discountPercent ? "sale" : isNew ? "new" : null,
-      discountPercent,
-      categoryIds: [...new Set(rows.flatMap((row) => (row.category?.id ? [row.category.id] : [])))],
-      updatedAt: rows.reduce((latest, row) => (row.updatedAt > latest ? row.updatedAt : latest), lead.updatedAt),
-    };
-  });
+/**
+ * Картка моделі. Для Sale (`onSale`) ціна, фото й посилання беруться з
+ * найдешевшого акційного варіанта, а не з найдешевшого взагалі.
+ */
+export function modelCard(model: CrmModel, onSale = false): CatalogCard {
+  const sale = onSale ? model.sale : null;
+  const price = sale ? sale.price : model.price;
+  const compareAtPrice = sale ? sale.compareAtPrice : model.compareAtPrice;
+  const percent = discountPercent(price, compareAtPrice);
+
+  return {
+    id: model.key,
+    href: productHref(model.key, sale ? sale.sku : model.sku),
+    name: model.name,
+    brand: model.brand?.name?.trim() || null,
+    image: (sale?.image ?? model.image)?.url ?? null,
+    imageAlt: model.name,
+    price,
+    compareAtPrice,
+    currency: model.currency,
+    colors: model.colors,
+    sizes: sortSizes(model.sizes),
+    badge: percent ? "sale" : model.tags.includes("new") ? "new" : null,
+    discountPercent: percent,
+    categoryIds: model.category?.id ? [model.category.id] : [],
+    updatedAt: model.updatedAt,
+  };
 }

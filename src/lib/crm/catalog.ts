@@ -1,31 +1,32 @@
 import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
-import { toProductCards, type CatalogCard } from "@/lib/catalog/product-cards";
+import { modelCard, type CatalogCard } from "@/lib/catalog/product-cards";
 import { crmGet, CrmError } from "./client";
 import type {
-  CrmBrand,
   CrmBrandList,
   CrmCapabilities,
   CrmCategory,
   CrmCategoryList,
+  CrmModelList,
   CrmPagination,
   CrmProduct,
   CrmProductDetail,
   CrmProductList,
 } from "./types";
 
-/**
- * Максимум CRM — 100 позицій на сторінку. Це й межа будь-якого завантаження
- * товарів сайтом: один перегляд = одна сторінка CRM, а не весь склад.
- */
-const PER_PAGE = 100;
+/** Моделей на сторінці каталогу. Жодна сторінка сайту не читає весь склад. */
+export const CATALOG_PAGE_SIZE = 24;
+/** Моделей в одному товарному sitemap-файлі (максимум CRM). */
+export const SITEMAP_PAGE_SIZE = 100;
+/** Максимум CRM для `keys`: обране читається одним запитом. */
+export const MAX_MODEL_KEYS = 100;
 /** Далі цієї сторінки не запитуємо: сміттєві `?page=` не мають плодити записи кешу. */
 export const MAX_CATALOG_PAGE = 500;
+/** Максимум CRM — 100 рядків на сторінку `/products` (варіанти однієї моделі). */
+const PER_PAGE = 100;
 /** Варіантів однієї моделі — до 300 (зараз максимум 84). */
 const MAX_VARIANT_PAGES = 3;
-/** Скільки брендів чи категорій максимум перевіряємо на наявність товарів складу. */
-const MAX_AVAILABILITY_CHECKS = 24;
 
 function warehouseId(): string {
   const value = process.env.OBRIYM_WAREHOUSE_ID?.trim();
@@ -51,6 +52,22 @@ function storeFilter() {
   };
 }
 
+/** Полиці вітрини ще й без моделей без ціни: їх не купити. */
+function shelfFilter() {
+  return { ...storeFilter(), minPrice: 0 };
+}
+
+async function fetchModels(
+  query: Record<string, string | number | undefined>,
+  page: number,
+): Promise<CrmModelList> {
+  const result = await crmGet<CrmModelList>("models", { ...query, page });
+  if (!Array.isArray(result?.data) || !validPagination(result.pagination, page)) {
+    throw new CrmError("INVALID_MODEL_LIST");
+  }
+  return result;
+}
+
 export type CatalogSort = "newest" | "price_asc" | "price_desc";
 
 export type CatalogQuery = {
@@ -59,15 +76,15 @@ export type CatalogQuery = {
   q: string;
   brandId: string;
   categoryId: string;
-  discounted: boolean;
+  onSale: boolean;
 };
 
 export type CatalogPage = {
   cards: CatalogCard[];
   page: number;
   pageCount: number;
-  /** Моделей за фільтром; `null`, доки CRM віддає артикули, а не моделі. */
-  modelCount: number | null;
+  /** Моделей за фільтром. */
+  modelCount: number;
 };
 
 /** Повний і однаково впорядкований запит — стабільний ключ кешу для однакових фільтрів. */
@@ -79,49 +96,36 @@ export function catalogQuery(input: Partial<CatalogQuery> = {}): CatalogQuery {
     q: input.q?.trim().slice(0, 200) ?? "",
     brandId: input.brandId ?? "",
     categoryId: input.categoryId ?? "",
-    discounted: input.discounted ?? false,
+    onSale: input.onSale ?? false,
   };
 }
 
-function isDiscounted(product: CrmProduct): boolean {
-  return product.price !== null
-    && product.compareAtPrice !== null
-    && product.compareAtPrice > product.price;
-}
-
-/**
- * Одна сторінка CRM (до 100 артикулів), згорнута в картки моделей. Модель,
- * чиї артикули CRM розклала по двох сторінках, з'явиться на обох — це зникне,
- * коли CRM віддаватиме список моделей.
- */
 async function fetchCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
-  const result = await crmGet<CrmProductList>("products", {
-    ...storeFilter(),
-    perPage: PER_PAGE,
-    page: query.page,
+  const result = await fetchModels({
+    ...shelfFilter(),
+    perPage: CATALOG_PAGE_SIZE,
     sort: query.sort,
     q: query.q || undefined,
     brandId: query.brandId || undefined,
     categoryId: query.categoryId || undefined,
-    // CRM поки ігнорує цей фільтр, тому рядки без знижки відкидаємо й тут.
-    discounted: query.discounted ? "true" : undefined,
-  });
-  if (!Array.isArray(result?.data) || !validPagination(result.pagination, query.page)) {
-    throw new CrmError("INVALID_PRODUCT_LIST");
-  }
+    // Батьківська категорія показує й моделі своїх підкатегорій.
+    includeSubcategories: query.categoryId ? "true" : undefined,
+    onSale: query.onSale ? "true" : undefined,
+  }, query.page);
 
-  const rows = query.discounted ? result.data.filter(isDiscounted) : result.data;
+  const { total, perPage } = result.pagination;
   return {
-    cards: toProductCards(rows),
+    cards: result.data.map((model) => modelCard(model, query.onSale)),
     page: query.page,
-    pageCount: Math.max(1, Math.ceil(result.pagination.total / result.pagination.perPage)),
-    modelCount: null,
+    pageCount: Math.max(1, Math.ceil(total / perPage)),
+    modelCount: total,
   };
 }
 
 /**
- * Кеш — окремий невеликий запис на кожну комбінацію фільтрів і сторінку.
- * Remote-кеш спільний для serverless-інстансів і скидається webhook-ом.
+ * Одна сторінка моделей CRM (24 картки, ~14 КБ). Кеш — окремий невеликий запис
+ * на кожну комбінацію фільтрів і сторінку; remote-кеш спільний для
+ * serverless-інстансів.
  */
 export async function getCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
   "use cache: remote";
@@ -130,19 +134,39 @@ export async function getCatalogPage(query: CatalogQuery): Promise<CatalogPage> 
   return fetchCatalogPage(query);
 }
 
-/** Чи є на складі ITALINO хоч один товар за фільтром: запит на один рядок. */
-async function hasStoreProducts(filter: { brandId?: string; categoryId?: string }): Promise<boolean> {
-  const result = await crmGet<CrmProductList>("products", {
+/** Картки обраного одним запитом (`keys`, до 100) у збереженому порядку. */
+export async function getModelCards(keys: readonly string[]): Promise<CatalogCard[]> {
+  "use cache: remote";
+  cacheLife("minutes");
+  cacheTag("catalog", "products");
+
+  const unique = [...new Set(keys)].slice(0, MAX_MODEL_KEYS);
+  if (!unique.length) return [];
+  const result = await fetchModels({
     ...storeFilter(),
-    ...filter,
-    perPage: 1,
-    page: 1,
-  });
-  if (!validPagination(result?.pagination, 1)) throw new CrmError("INVALID_PRODUCT_PAGINATION");
-  return result.pagination.total > 0;
+    keys: unique.join(","),
+    perPage: unique.length,
+  }, 1);
+  return result.data.map((model) => modelCard(model));
 }
 
-function hasIdAndName<T extends { id?: unknown; name?: unknown }>(item: T): boolean {
+export type SitemapModel = { key: string; updatedAt: string };
+
+/** Моделі одного товарного sitemap-файлу. */
+export async function getSitemapModels(page: number): Promise<SitemapModel[]> {
+  "use cache: remote";
+  cacheLife("days");
+  cacheTag("catalog", "products");
+
+  const result = await fetchModels({
+    ...shelfFilter(),
+    perPage: SITEMAP_PAGE_SIZE,
+    sort: "newest",
+  }, page);
+  return result.data.map((model) => ({ key: model.key, updatedAt: model.updatedAt }));
+}
+
+function hasIdAndName(item: { id?: unknown; name?: unknown }): boolean {
   return typeof item?.id === "string"
     && typeof item?.name === "string"
     && item.id.trim().length > 0
@@ -150,48 +174,63 @@ function hasIdAndName<T extends { id?: unknown; name?: unknown }>(item: T): bool
 }
 
 /**
- * Категорії вітрини з CRM. Порядок відповіді CRM зберігається для навігації.
- * `/categories` спільний для всього workspace, тож кореневу категорію без
- * підкатегорій показуємо, лише якщо в ній є товар складу ITALINO. Підкатегорії
- * не перевіряємо: порожня просто покаже «товарів немає».
+ * Категорії вітрини — лише ті, де є моделі складу ITALINO (лічильник CRM уже
+ * враховує підкатегорії). Порядок відповіді CRM зберігається для навігації.
  */
 export async function getStoreCategories(): Promise<CrmCategory[]> {
   "use cache: remote";
   cacheLife("hours");
   cacheTag("catalog", "categories");
 
-  const result = await crmGet<CrmCategoryList>("categories", { warehouseId: warehouseId() });
+  const result = await crmGet<CrmCategoryList>("categories", {
+    withProductCounts: "true",
+    warehouseId: warehouseId(),
+  });
   if (!Array.isArray(result?.data)) throw new CrmError("INVALID_CATEGORY_LIST");
-  const categories = result.data.filter(hasIdAndName);
-  const ids = new Set(categories.map((category) => category.id));
-  const parentIds = new Set(categories.flatMap((category) => category.parentId ? [category.parentId] : []));
-  const lonelyRoots = categories
-    .filter((category) => (!category.parentId || !ids.has(category.parentId)) && !parentIds.has(category.id))
-    .slice(0, MAX_AVAILABILITY_CHECKS);
-  const available = await Promise.all(
-    lonelyRoots.map((category) => hasStoreProducts({ categoryId: category.id })),
-  );
-  const empty = new Set(lonelyRoots.filter((_, index) => !available[index]).map((category) => category.id));
-  return categories.filter((category) => !empty.has(category.id));
+  return result.data
+    .filter((category) => hasIdAndName(category) && (category.modelCount ?? 0) > 0)
+    .map((category) => ({
+      id: category.id,
+      name: category.name.trim(),
+      slug: category.slug,
+      parentId: category.parentId,
+      imageUrl: category.imageUrl ?? null,
+      modelCount: category.modelCount,
+    }));
 }
 
+export type StoreBrand = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  modelCount: number;
+};
+
 /**
- * Бренди вітрини. `/brands` віддає бренди всього workspace, зокрема чужих
- * складів, тому лишаємо ті, в яких є товар складу ITALINO.
+ * Бренди вітрини — фасет `/models`: лише склад ITALINO, з кількістю моделей.
+ * `/brands` віддає бренди всього workspace, тож із нього беремо тільки логотипи.
  */
-export async function getStoreBrands(): Promise<CrmBrand[]> {
+export async function getStoreBrands(): Promise<StoreBrand[]> {
   "use cache: remote";
   cacheLife("hours");
   cacheTag("catalog", "products");
 
-  const result = await crmGet<CrmBrandList>("brands", { warehouseId: warehouseId() });
-  if (!Array.isArray(result?.data)) throw new CrmError("INVALID_BRAND_LIST");
-  const brands = result.data.filter(hasIdAndName).slice(0, MAX_AVAILABILITY_CHECKS);
-  const available = await Promise.all(brands.map((brand) => hasStoreProducts({ brandId: brand.id })));
-  return brands
-    .filter((_, index) => available[index])
-    .map((brand) => ({ ...brand, name: brand.name.trim() }))
-    .sort((a, b) => a.name.localeCompare(b.name, "uk"));
+  const [models, brands] = await Promise.all([
+    fetchModels({ ...shelfFilter(), perPage: 1, facets: "true" }, 1),
+    crmGet<CrmBrandList>("brands"),
+  ]);
+  if (!Array.isArray(models.facets?.brands)) throw new CrmError("INVALID_MODEL_FACETS");
+  const images = new Map((Array.isArray(brands?.data) ? brands.data : [])
+    .map((brand) => [brand.id, brand.imageUrl]));
+  return models.facets.brands
+    .filter((brand) => brand.count > 0 && hasIdAndName(brand))
+    .map((brand) => ({
+      id: brand.id,
+      name: brand.name.trim(),
+      imageUrl: images.get(brand.id) || null,
+      modelCount: brand.count,
+    }))
+    .sort((a, b) => b.modelCount - a.modelCount || a.name.localeCompare(b.name, "uk"));
 }
 
 async function fetchProductVariants(key: string): Promise<CrmProduct[]> {

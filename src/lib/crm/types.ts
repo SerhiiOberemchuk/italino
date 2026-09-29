@@ -59,6 +59,8 @@ export type CrmCategory = {
   slug: string | null;
   parentId: string | null;
   imageUrl?: string | null;
+  /** Лише з `withProductCounts=true`; разом із підкатегоріями. */
+  modelCount?: number;
 };
 
 export type CrmCategoryList = { data: CrmCategory[] };
@@ -71,6 +73,49 @@ export type CrmBrand = {
 };
 
 export type CrmBrandList = { data: CrmBrand[] };
+
+/** Найдешевший варіант моделі зі знижкою. */
+export type CrmModelSale = {
+  price: number;
+  compareAtPrice: number | null;
+  sku: string | null;
+  image: CrmProductImage | null;
+};
+
+/** Картка моделі з `GET /models`: одна на модель, ціна/фото/SKU — найдешевшого варіанта. */
+export type CrmModel = {
+  /** Код моделі (productGroupId) або id товару поза моделлю — ключ у URL сайту. */
+  key: string;
+  code: string | null;
+  name: string;
+  brand: { id: string; name: string | null } | null;
+  category: { id: string; name: string | null; parentId: string | null } | null;
+  price: number | null;
+  compareAtPrice: number | null;
+  currency: string;
+  sku: string | null;
+  image: CrmProductImage | null;
+  sale: CrmModelSale | null;
+  colors: string[];
+  sizes: string[];
+  availability: "in_stock" | "on_order" | "preorder" | "out_of_stock" | "discontinued";
+  variantCount: number;
+  tags: string[];
+  updatedAt: string;
+};
+
+export type CrmModelFacets = {
+  brands: { id: string; name: string; count: number }[];
+  colors: { value: string; count: number }[];
+  sizes: { value: string; count: number }[];
+  price: { min: number; max: number } | null;
+};
+
+export type CrmModelList = {
+  data: CrmModel[];
+  pagination: CrmPagination;
+  facets?: CrmModelFacets;
+};
 
 export type CrmCollection = {
   id: string;
