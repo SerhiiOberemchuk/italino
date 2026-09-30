@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { BuyBox } from "@/components/catalog/buy-box";
 import { ProductGallery, ProductGallerySkeleton } from "@/components/catalog/product-gallery";
 import { VariantSelectionProvider } from "@/components/catalog/variant-selection";
-import { isPurchasable, variantAxes } from "@/lib/catalog/variants";
+import { galleryFor, isPurchasable, variantAxes } from "@/lib/catalog/variants";
 import type { CrmProduct } from "@/lib/crm/types";
 import { getFreeShippingThreshold, getProductVariants } from "@/lib/crm/catalog";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
@@ -113,8 +113,14 @@ async function FreeShippingNote() {
 }
 
 async function ProductJsonLd({ variants: variantsPromise }: { variants: Variants }) {
-  const variants = await variantsPromise;
-  const lead = variants[0];
+  const allVariants = await variantsPromise;
+  // Google вимагає `offers` у кожного варіанта ProductGroup, тож артикул без
+  // ціни в розмітку не йде. Модель, де ціни немає ніде, лишається без розмітки:
+  // неповна дає критичну помилку в Search Console замість картки товару.
+  const variants = allVariants.filter((variant) => variant.price !== null);
+  if (!variants.length) return null;
+
+  const lead = allVariants[0];
   const axes = variantAxes(variants);
   const offerPolicies = offerPolicyReferences(publicSiteUrl());
 
@@ -137,8 +143,10 @@ async function ProductJsonLd({ variants: variantsPromise }: { variants: Variants
       sku: variant.sku ?? undefined,
       color: variant.color ?? undefined,
       size: variant.size ?? undefined,
-      image: variant.images.map((image) => image.url),
-      offers: variant.price === null ? undefined : {
+      // Та сама галерея, що й на сторінці: артикул без власних фото бере фото
+      // сусіднього розміру, а не лишає `image` порожнім.
+      image: galleryFor(allVariants, variant),
+      offers: {
         "@type": "Offer",
         priceCurrency: variant.currency,
         price: variant.price,
@@ -148,7 +156,7 @@ async function ProductJsonLd({ variants: variantsPromise }: { variants: Variants
     })),
   };
 
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />;
 }
 
 /**
