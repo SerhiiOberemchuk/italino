@@ -1,6 +1,7 @@
-import type { MetadataRoute } from "next";
+import { connection } from "next/server";
 import { getStoreCategories } from "@/lib/crm/catalog";
 import { categoryKey } from "@/lib/catalog/categories";
+import { urlsetResponse, type SitemapUrl } from "@/lib/seo/sitemap-xml";
 import { publicSiteUrl } from "@/lib/site-url";
 
 const STATIC_PATHS = [
@@ -8,12 +9,18 @@ const STATIC_PATHS = [
   "/legal/offer", "/legal/terms", "/legal/privacy", "/legal/payment",
 ];
 
-/** Статичні сторінки й категорії. Товари — окремо, по сторінці CRM: `/product/sitemap/[id].xml`. */
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+/**
+ * Статичні сторінки й категорії. Лежить у корені сайту: мапа може містити лише
+ * адреси зі своєї теки й нижче. Товари — `/product/sitemap/[id].xml`, усе разом
+ * зводить індекс `/sitemap.xml`.
+ */
+export async function GET(): Promise<Response> {
+  // Категорії — на запит робота з кешу CRM, а не знімок часу збірки.
+  await connection();
   const base = publicSiteUrl();
   const url = (path: string) => new URL(path, base).toString();
 
-  const entries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
+  const entries: SitemapUrl[] = STATIC_PATHS.map((path) => ({
     url: url(path),
     changeFrequency: path.startsWith("/legal/") || path === "/contacts" || path === "/returns"
       ? "yearly"
@@ -33,5 +40,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Без CRM віддаємо лише статичну частину мапи.
   }
 
-  return entries;
+  return urlsetResponse(entries);
 }

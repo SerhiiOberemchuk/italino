@@ -28,7 +28,7 @@
 | `/account/*` | Кабінет: профіль, адреси, замовлення | 💤 | — |
 | `/favorites` | Обране (localStorage) | 💤 | — |
 | `/legal/offer`, `/legal/terms`, `/legal/privacy`, `/legal/payment` | Оферта, умови використання, конфіденційність, оплата RozetkaPay | ✅ | 3 |
-| `/sitemap.xml`, `/robots.txt` | SEO-файли | ✅ | 2 |
+| `/sitemap.xml` (індекс), `/sitemap-pages.xml`, `/product/sitemap/[id].xml`, `/robots.txt` | SEO-файли | ✅ | 2 |
 | `not-found.tsx`, `error.tsx` | Службові (`loading.tsx` не використовуємо — див. ARCHITECTURE.md) | ✅ | 1 |
 
 ## Блоки сторінок
