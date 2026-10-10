@@ -211,6 +211,13 @@
   }
 }
 
+/* Кабінет на телефоні — у шухляді меню, з тієї ж причини, що й пошук. */
+@media (max-width: 639px) {
+  .accountBtn {
+    display: none;
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1023px) {
   .searchBtn {
     display: none;

@@ -345,3 +345,37 @@ export async function getFreeShippingThreshold(): Promise<number | null> {
     return null;
   }
 }
+
+/**
+ * Адреса кабінету покупця, який CRM тримає для магазину на власній адресі
+ * (`https://{магазин}.obriym.app/account`). `null` — кабінет вимкнено, не
+ * налаштовано або CRM недоступна: тоді вітрина посилання не показує. Власник
+ * вмикає й вимикає кабінет у CRM, і за 5 хвилин це доходить до сайту без
+ * релізу; негайно — POST /api/revalidate з тегом `capabilities`.
+ */
+export async function getCustomerAccountUrl(): Promise<string | null> {
+  "use cache: remote";
+  // Шапка є на кожній сторінці, тож цей профіль задає ритм оновлення й
+  // статичних сторінок: 5 хвилин, як у порогу доставки, а не щохвилини.
+  cacheLife({ stale: 300, revalidate: 300, expire: 3_600 });
+  cacheTag("capabilities");
+  try {
+    // Як і поріг доставки, помилку ловимо всередині кешу: під час пререндеру
+    // відхилений кешований виклик спливає навіть у того, хто його ловить.
+    const { customerAccount } = (await crmGet<CrmCapabilities>("capabilities")).data;
+    return httpsUrl(customerAccount?.url);
+  } catch {
+    return null;
+  }
+}
+
+/** Лише https-адреса: посилання з CRM ніколи не стає `javascript:` чи http. */
+function httpsUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}

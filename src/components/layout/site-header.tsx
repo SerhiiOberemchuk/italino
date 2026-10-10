@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   GridIcon,
   SearchIcon,
+  UserIcon,
 } from "@/components/ui/icons";
 import { CartLink } from "@/components/cart/cart-link";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { FavoritesLink } from "@/components/favorites/favorites-link";
+import { getCustomerAccountUrl } from "@/lib/crm/catalog";
 import { MobileMenu } from "./mobile-menu";
 import styles from "./site-header.module.css";
 
@@ -15,11 +18,32 @@ const SECONDARY_NAV = [
   { label: "Для бізнесу", href: "/contacts", accent: false },
 ] as const;
 
+/** Кабінет покупця живе в CRM на адресі магазину; іконка є, лише поки він відкритий. */
+async function AccountLink() {
+  const url = await getCustomerAccountUrl();
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      className={`${styles.iconBtn} ${styles.accountBtn}`}
+      aria-label="Особистий кабінет"
+    >
+      <UserIcon />
+    </a>
+  );
+}
+
+async function MobileMenuWithAccount() {
+  return <MobileMenu accountUrl={await getCustomerAccountUrl()} />;
+}
+
 export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={`wrap ${styles.inner}`}>
-        <MobileMenu />
+        <Suspense fallback={<MobileMenu />}>
+          <MobileMenuWithAccount />
+        </Suspense>
 
         <Link href="/" className={styles.logo} aria-label="Italino — на головну">
           <BrandLogo />
@@ -61,6 +85,9 @@ export function SiteHeader() {
           >
             <SearchIcon />
           </Link>
+          <Suspense fallback={null}>
+            <AccountLink />
+          </Suspense>
           <FavoritesLink />
           <CartLink />
         </div>

@@ -158,6 +158,11 @@ export type CrmCapabilityMethod = {
 export type CrmCapabilities = {
   data: {
     cart: { currency: string; freeShippingThreshold: number | null; minOrderAmount: number | null };
+    /**
+     * Кабінет покупця, який CRM тримає на адресі магазину. `url` є лише поки
+     * кабінет відкритий; CRM без цього поля означає «кабінету немає».
+     */
+    customerAccount?: { url: string | null };
     payments: CrmCapabilityMethod[];
     shipping: CrmCapabilityMethod[];
   };

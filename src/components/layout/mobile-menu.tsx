@@ -20,7 +20,8 @@ const SERVICE = [
   { label: "Контакти", href: "/contacts" },
 ] as const;
 
-export function MobileMenu() {
+/** Кабінет покупця на адресі магазину в CRM — лише коли він відкритий. */
+export function MobileMenu({ accountUrl = null }: { accountUrl?: string | null }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -81,6 +82,10 @@ export function MobileMenu() {
             ))}
 
             <p className={styles.groupTitle}>Сервіс</p>
+            {accountUrl ? (
+              // Інша адреса, тож звичайне посилання, а не клієнтська навігація.
+              <a href={accountUrl} onClick={() => setOpen(false)}>Особистий кабінет</a>
+            ) : null}
             {SERVICE.map((item) => (
               <Link key={item.label} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>
             ))}
