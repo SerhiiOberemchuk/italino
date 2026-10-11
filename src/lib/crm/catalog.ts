@@ -26,6 +26,8 @@ export const MAX_CATALOG_PAGE = 500;
 const PER_PAGE = 100;
 /** Варіантів однієї моделі — до 300 (зараз максимум 84). */
 const MAX_VARIANT_PAGES = 3;
+/** Сторінок у наборі ключів моделей — до 5 000 моделей (зараз ~1 400). */
+const MAX_KEY_PAGES = 50;
 
 function warehouseId(): string {
   const value = process.env.OBRIYM_WAREHOUSE_ID?.trim();
@@ -310,11 +312,59 @@ export async function getLiveProductBySku(sku: string): Promise<CrmProduct | nul
   return fetchProductBySku(sku);
 }
 
-export async function getProductVariants(key: string): Promise<CrmProduct[]> {
+type StoreModelKeys = { keys: string[]; complete: boolean };
+
+/**
+ * Ключі всіх моделей вітрини — той самий фільтр складу, що й у сторінки товару.
+ * ~14 запитів до CRM раз на 5 хвилин (або одразу після вебхука `catalog`).
+ * `complete: false`, якщо моделей більше, ніж уміщує набір: тоді відсутність
+ * ключа нічого не доводить.
+ */
+async function getStoreModelKeys(): Promise<StoreModelKeys> {
+  "use cache: remote";
+  cacheLife({ stale: 300, revalidate: 300, expire: 86_400 });
+  cacheTag("catalog", "products");
+
+  const query = { ...storeFilter(), perPage: SITEMAP_PAGE_SIZE, sort: "newest" };
+  const first = await fetchModels(query, 1);
+  const pageCount = Math.ceil(first.pagination.total / first.pagination.perPage);
+  const rest = await Promise.all(
+    Array.from({ length: Math.min(MAX_KEY_PAGES, pageCount) - 1 }, (_, index) => fetchModels(query, index + 2)),
+  );
+  return {
+    keys: [first, ...rest].flatMap((page) => page.data.map((model) => model.key)),
+    complete: pageCount <= MAX_KEY_PAGES,
+  };
+}
+
+/**
+ * Чи варто питати CRM про цю адресу. Вигадана адреса `/product/<будь-що>`
+ * інакше коштувала б 1–2 запити до спільної на всіх відвідувачів квоти токена
+ * (120 запитів/хв), і кеш за ключем від цього не рятує: кожна вигадана адреса
+ * нова. Коли набір недоступний, адреса пропускається — справжній товар не має
+ * зникнути через збій допоміжного запиту.
+ */
+async function isStoreModelKey(key: string): Promise<boolean> {
+  try {
+    const { keys, complete } = await getStoreModelKeys();
+    return !complete || keys.includes(key);
+  } catch (error) {
+    console.error("[Catalog model keys]", error instanceof Error ? error.message : "Unknown error");
+    return true;
+  }
+}
+
+async function getCachedProductVariants(key: string): Promise<CrmProduct[]> {
   "use cache: remote";
   cacheLife("minutes");
   cacheTag("catalog", "products", `product-${key.slice(0, 180)}`);
   return fetchProductVariants(key);
+}
+
+/** Варіанти моделі за адресою; адреса, якої немає серед моделей вітрини, у CRM не йде. */
+export async function getProductVariants(key: string): Promise<CrmProduct[]> {
+  if (!(await isStoreModelKey(key))) return [];
+  return getCachedProductVariants(key);
 }
 
 export async function getCapabilities() {
