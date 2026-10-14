@@ -14,6 +14,12 @@ export type NovaPoshtaWarehouse = {
   ref: string;
 };
 
+/** Одна сторінка пошуку точок міста; `total` — скільки їх відповідає запиту. */
+export type NovaPoshtaWarehousePage = {
+  items: NovaPoshtaWarehouse[];
+  total: number;
+};
+
 /** Від якої довжини запиту має сенс шукати місто. */
 export const CITY_QUERY_MIN = 2;
 

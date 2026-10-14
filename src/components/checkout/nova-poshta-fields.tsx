@@ -92,38 +92,62 @@ export function NovaPoshtaFields() {
   );
 }
 
-function WarehouseField({ city, onError }: { city: ComboboxOption | null; onError: (message: string) => void }) {
-  // null — ще не відповіли; порожній масив — відповіли, але нічого немає.
-  const [warehouses, setWarehouses] = useState<ComboboxOption[] | null>(null);
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<ComboboxOption | null>(null);
+/** Нова Пошта показує в пошуку й населені пункти без жодної відкритої точки. */
+const NO_POINTS_IN_CITY =
+  "Нова Пошта зараз не має тут відділень і поштоматів. Оберіть найближчий населений пункт, де вони є.";
 
-  // Відділення приходять усі разом: шукати вміє лише довідник міст.
+type WarehousePage = {
+  /** Запит, на який ця сторінка — відповідь; поки він не збігається з поточним, іде пошук. */
+  query: string;
+  items: ComboboxOption[];
+  total: number;
+  failed: boolean;
+};
+
+function WarehouseField({ city, onError }: { city: ComboboxOption | null; onError: (message: string) => void }) {
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState<WarehousePage | null>(null);
+  const [selected, setSelected] = useState<ComboboxOption | null>(null);
+  const search = query.trim();
+
+  // Шукає CRM по всьому місту: у великому місті тисячі точок, тож перша сторінка
+  // без запиту — це не «всі відділення». Перша сторінка — одразу, пошук — після
+  // паузи в наборі.
   useEffect(() => {
     if (!city) return;
 
     const controller = new AbortController();
-    fetch(`/api/shipping/warehouses?cityRef=${encodeURIComponent(city.value)}`, { signal: controller.signal })
-      .then(async (response) => {
-        const result = await response.json() as { warehouses?: NovaPoshtaWarehouse[]; error?: string };
-        if (!response.ok) throw new Error(result.error);
-        setWarehouses((result.warehouses ?? []).map((item) => ({ value: item.ref, label: item.label })));
-      })
-      .catch((reason: unknown) => {
-        if (aborted(reason)) return;
-        setWarehouses([]);
-        onError("Не вдалося завантажити відділення цього міста. Спробуйте ще раз або напишіть нам.");
-      });
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams({ cityRef: city.value });
+      if (search) params.set("q", search);
+      fetch(`/api/shipping/warehouses?${params}`, { signal: controller.signal })
+        .then(async (response) => {
+          const result = await response.json() as {
+            warehouses?: NovaPoshtaWarehouse[];
+            total?: number;
+            error?: string;
+          };
+          if (!response.ok) throw new Error(result.error);
+          const items = (result.warehouses ?? []).map((item) => ({ value: item.ref, label: item.label }));
+          setPage({ query: search, items, total: result.total ?? items.length, failed: false });
+        })
+        .catch((reason: unknown) => {
+          if (aborted(reason)) return;
+          setPage({ query: search, items: [], total: 0, failed: true });
+          onError("Не вдалося завантажити відділення цього міста. Спробуйте ще раз або напишіть нам.");
+        });
+    }, search ? SEARCH_DELAY_MS : 0);
 
-    return () => controller.abort();
-  }, [city, onError]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [city, search, onError]);
 
-  const loaded = warehouses ?? [];
-  const needle = query.trim().toLocaleLowerCase("uk");
-  const visible = (needle
-    ? loaded.filter((item) => item.label.toLocaleLowerCase("uk").includes(needle))
-    : loaded
-  ).slice(0, SUGGESTION_LIMIT);
+  const loading = city !== null && page?.query !== search;
+  const items = page?.items ?? [];
+  // Порожня відповідь на порожній запит — це саме місто, а не невдалий пошук.
+  const noPointsInCity = !loading && page !== null && !page.failed && page.query === "" && page.total === 0;
 
   return (
     <>
@@ -132,16 +156,22 @@ function WarehouseField({ city, onError }: { city: ComboboxOption | null; onErro
       <Combobox
         label="Відділення або поштомат"
         placeholder={city ? "Номер або вулиця" : "Спершу оберіть місто"}
-        options={visible}
+        options={items.slice(0, SUGGESTION_LIMIT)}
         selected={selected}
         onSelect={setSelected}
         onQueryChange={setQuery}
         disabled={!city}
-        loading={city !== null && warehouses === null}
-        hint={loaded.length > SUGGESTION_LIMIT
-          ? `У цьому місті ${loaded.length} відділень — введіть номер або вулицю`
-          : undefined}
-        emptyMessage="Нічого не знайшли — спробуйте інший номер або вулицю"
+        loading={loading}
+        hint={noPointsInCity
+          ? NO_POINTS_IN_CITY
+          : page && page.total > items.length
+            ? `Показано ${items.length} з ${page.total} — введіть номер або вулицю`
+            : undefined}
+        emptyMessage={page?.failed
+          ? "Не вдалося завантажити відділення"
+          : noPointsInCity
+            ? NO_POINTS_IN_CITY
+            : "Нічого не знайшли — спробуйте інший номер або вулицю"}
       />
     </>
   );

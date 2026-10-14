@@ -1,7 +1,12 @@
 import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
-import type { NovaPoshtaCity, NovaPoshtaWarehouse } from "@/lib/shipping/nova-poshta";
+import {
+  SUGGESTION_LIMIT,
+  type NovaPoshtaCity,
+  type NovaPoshtaWarehouse,
+  type NovaPoshtaWarehousePage,
+} from "@/lib/shipping/nova-poshta";
 import { crmGet } from "./client";
 
 /*
@@ -27,15 +32,31 @@ export async function searchCities(query: string): Promise<NovaPoshtaCity[]> {
   });
 }
 
-export async function listWarehouses(cityRef: string): Promise<NovaPoshtaWarehouse[]> {
+/*
+ * Точки міста ШУКАЄ CRM, а не віддає списком: у Києві їх понад 8 000 (здебільшого
+ * поштомати), а без запиту CRM повертає лише першу сторінку. Колись сайт брав саме
+ * її й фільтрував у браузері — тож більшість поштоматів знайти було неможливо, а
+ * підказка називала 500 «усіма» відділеннями міста. `total` — скільки точок
+ * відповідає запиту насправді.
+ */
+export async function searchWarehouses(
+  cityRef: string,
+  query: string,
+): Promise<NovaPoshtaWarehousePage> {
   "use cache";
   cacheLife("days");
   cacheTag("shipping", "np-warehouses");
 
-  const result = await crmGet<{ data?: unknown }>("carriers/nova_poshta/warehouses", { cityRef });
-  if (!Array.isArray(result.data)) return [];
-  return result.data.filter((warehouse): warehouse is NovaPoshtaWarehouse => {
-    const candidate = warehouse as Partial<NovaPoshtaWarehouse>;
-    return typeof candidate.label === "string" && typeof candidate.ref === "string";
-  });
+  const result = await crmGet<{ data?: unknown; pagination?: { total?: unknown } }>(
+    "carriers/nova_poshta/warehouses",
+    { cityRef, perPage: SUGGESTION_LIMIT, q: query || undefined },
+  );
+  const items = Array.isArray(result.data)
+    ? result.data.filter((warehouse): warehouse is NovaPoshtaWarehouse => {
+        const candidate = warehouse as Partial<NovaPoshtaWarehouse>;
+        return typeof candidate.label === "string" && typeof candidate.ref === "string";
+      })
+    : [];
+  const total = result.pagination?.total;
+  return { items, total: typeof total === "number" ? total : items.length };
 }
