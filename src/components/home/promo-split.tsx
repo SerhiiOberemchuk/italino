@@ -15,13 +15,13 @@ export function PromoSplit({ saleImage, businessImage, maxDiscount }: Props) {
       <div className={styles.grid}>
         <Link href="/catalog?discounted=true" className={`${styles.tile} ${styles.tileSale}`}>
           <div className={styles.copy}>
-            <p className={`eyebrow ${styles.eyebrow}`}>Кінець серій</p>
+            <p className={`eyebrow ${styles.eyebrow}`}>Вигідні пропозиції</p>
             <h3>{maxDiscount ? `Sale до −${maxDiscount}%` : "Sale"}</h3>
             <p className={styles.text}>
-              Останні партії моделей, яких більше не буде в каталозі. Ціна знижена,
-              кількість обмежена.
+              Товари з актуальними знижками. Обирайте потрібну модель і перевіряйте
+              наявність перед замовленням.
             </p>
-            <span className={`btn btn--ghost ${styles.btn}`}>Встигнути до кінця серії</span>
+            <span className={`btn btn--ghost ${styles.btn}`}>Переглянути Sale</span>
           </div>
           {saleImage ? (
             <div className={styles.img} aria-hidden="true">

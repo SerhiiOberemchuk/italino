@@ -45,12 +45,12 @@
 }
 
 .badgeNew {
-  background: var(--lime);
+  background: #ebe5db;
   color: var(--ink);
 }
 
 .badgeSale {
-  background: var(--tomato);
+  background: #a35c49;
   color: var(--white);
 }
 

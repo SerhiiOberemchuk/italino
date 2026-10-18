@@ -99,6 +99,7 @@ docs/                    документація
 | Обране (`/models?keys=`) | `"use cache: remote"`, профіль `minutes` | теги `catalog`, `products` |
 | Категорії з лічильниками, бренди складу (фасет) | `"use cache: remote"`, профіль `hours` | теги `catalog`, `categories` / `products` |
 | Товарний sitemap-файл (100 моделей) | `"use cache: remote"`, профіль `days` | теги `catalog`, `products` |
+| SKU sitemap-файл (до 100 артикулів) | `"use cache: remote"`, профіль `minutes` | теги `catalog`, `products` |
 | Варіанти однієї моделі / SKU кошика | точкові CRM-запити, remote cache `minutes` | теги `catalog`, `products` |
 | Ціна й залишок SKU на checkout | точковий запит без кешу | — |
 | Статус замовлення (`/track`) | без кешу | — |
@@ -160,9 +161,9 @@ docs/                    документація
 - Обране — сторінками по 24 моделі, одним запитом `/models?keys=`.
 - Мапа сайту — індекс `/sitemap.xml` (route handler: Next не генерує
   `<sitemapindex>`): `/sitemap-pages.xml` (статичні сторінки й категорії, лежить
-  у корені, бо мапа може містити лише адреси своєї теки) і товарні
-  `/product/sitemap/[id].xml` — файл на 100 моделей, кількість файлів у індексі
-  й у `generateSitemaps` рахує той самий `productSitemapCount`. `robots.txt`
+  у корені, бо мапа може містити лише адреси своєї теки), моделі
+  `/product/sitemap/[id].xml` і артикули `/product/sku/sitemap/[id].xml`.
+  Кількість файлів у індексі й `generateSitemaps` рахують ті самі функції. `robots.txt`
   посилається лише на індекс.
 - Категорії — `/categories?withProductCounts=true&warehouseId=`: лишаються ті,
   де є моделі складу. Лічильник CRM рахує й моделі без ціни, тому на плитках

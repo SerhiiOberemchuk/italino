@@ -167,6 +167,45 @@ export async function getSitemapModels(page: number): Promise<SitemapModel[]> {
   return result.data.map((model) => ({ key: model.key, updatedAt: model.updatedAt }));
 }
 
+export type SitemapSku = { sku: string; updatedAt: string };
+
+/** Окремі сторінки SKU беруться з того самого опублікованого складу, що й каталог. */
+function sitemapSkuQuery() {
+  return { ...shelfFilter(), perPage: SITEMAP_PAGE_SIZE };
+}
+
+export async function getSitemapSkuPageCount(): Promise<number> {
+  "use cache: remote";
+  cacheLife("minutes");
+  cacheTag("catalog", "products");
+
+  const result = await crmGet<CrmProductList>("products", { ...shelfFilter(), perPage: 1, page: 1 });
+  if (!Array.isArray(result?.data) || !validPagination(result.pagination, 1)) {
+    throw new CrmError("INVALID_PRODUCT_LIST");
+  }
+  return Math.max(1, Math.ceil(result.pagination.total / SITEMAP_PAGE_SIZE));
+}
+
+export async function getSitemapSkus(page: number): Promise<SitemapSku[]> {
+  "use cache: remote";
+  cacheLife("minutes");
+  cacheTag("catalog", "products");
+
+  const result = await crmGet<CrmProductList>("products", { ...sitemapSkuQuery(), page });
+  if (!Array.isArray(result?.data) || !validPagination(result.pagination, page)) {
+    throw new CrmError("INVALID_PRODUCT_LIST");
+  }
+  const expectedWarehouseId = warehouseId();
+  return result.data
+    .filter((product) => product.status === "active"
+      && product.storefrontVisible !== false
+      && (product.warehouseId == null || product.warehouseId === expectedWarehouseId)
+      && product.price !== null
+      && typeof product.sku === "string"
+      && validSku(product.sku))
+    .map((product) => ({ sku: product.sku as string, updatedAt: product.updatedAt }));
+}
+
 function hasIdAndName(item: { id?: unknown; name?: unknown }): boolean {
   return typeof item?.id === "string"
     && typeof item?.name === "string"
@@ -280,7 +319,7 @@ async function fetchProductVariants(key: string): Promise<CrmProduct[]> {
 }
 
 function validSku(sku: string): boolean {
-  return /^[a-z0-9._-]{1,120}$/i.test(sku);
+  return sku !== "." && sku !== ".." && /^[a-z0-9._-]{1,120}$/i.test(sku);
 }
 
 async function fetchProductBySku(sku: string): Promise<CrmProduct | null> {

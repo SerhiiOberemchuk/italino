@@ -65,7 +65,7 @@
 .primary:hover { background: var(--tomato); }
 .primary:disabled { cursor: not-allowed; opacity: .5; }
 .notice { margin-top: 14px; color: #287044; font-size: 14px; }
-.infoBox { margin-top: 28px; padding: 20px; border-radius: var(--radius-lg); background: var(--lime); line-height: 1.55; }
+.infoBox { margin-top: 28px; padding: 20px; border: 1px solid var(--ink-10); border-radius: 14px; background: #ebe5db; line-height: 1.55; }
 .description { margin-top: 42px; line-height: 1.7; white-space: pre-line; }
 .specs { width: 100%; margin-top: 28px; border-collapse: collapse; }
 .specs th, .specs td { padding: 12px 0; border-bottom: 1px solid var(--ink-10); text-align: left; vertical-align: top; }

@@ -1,30 +1,7 @@
 .hero {
   position: relative;
   overflow: hidden;
-}
-
-.blobLime,
-.blobTomato {
-  position: absolute;
-  border-radius: var(--radius-pill);
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-.blobLime {
-  left: -160px;
-  top: 60px;
-  width: 420px;
-  height: 420px;
-  background: rgb(216 255 62 / 0.6);
-}
-
-.blobTomato {
-  right: -120px;
-  top: -140px;
-  width: 380px;
-  height: 380px;
-  background: rgb(255 75 43 / 0.22);
+  border-bottom: 1px solid var(--ink-10);
 }
 
 .inner {
@@ -64,20 +41,14 @@
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  border-radius: var(--radius-pill);
-  background: var(--ink);
-  color: var(--lime);
+  min-height: 24px;
+  padding-left: 12px;
+  border-left: 2px solid #a35c49;
+  color: var(--ink-70);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-.pill svg {
-  width: 15px;
-  height: 15px;
 }
 
 .title {
@@ -93,7 +64,7 @@
 .title em {
   font-style: italic;
   font-weight: 500;
-  color: var(--tomato);
+  color: #a35c49;
 }
 
 .lead {
@@ -167,49 +138,33 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
+  border: 1px solid var(--ink-10);
+  border-radius: 16px;
   transition: transform 0.25s var(--ease);
 }
 
-.tile:nth-child(2),
-.tile:nth-child(3) {
-  transform: translateY(14px);
-}
-
-@media (min-width: 640px) {
-  .tile:nth-child(2),
-  .tile:nth-child(3) {
-    transform: translateY(24px);
-  }
-
-  .tile:nth-child(2):hover,
-  .tile:nth-child(3):hover {
-    transform: translateY(18px);
-  }
-}
-
 .tile:hover {
-  transform: translateY(-6px);
+  transform: translateY(-3px);
 }
 
 .tintLime {
-  background: var(--tint-lime);
+  background: #e9e8df;
 }
 
 .tintSky {
-  background: var(--tint-sky);
+  background: #e7e9e8;
 }
 
 .tintTomato {
-  background: var(--tint-tomato);
+  background: #eee6df;
 }
 
 .tintMint {
-  background: var(--tint-mint);
+  background: #e6e9e2;
 }
 
 .tintSand {
-  background: var(--sand);
+  background: #ebe5dd;
 }
 
 .tileLink {
@@ -242,8 +197,8 @@
   gap: 1px;
   max-width: calc(100% - 24px);
   padding: 9px 14px;
-  border-radius: 16px;
-  background: var(--paper);
+  border-radius: 8px;
+  background: rgb(255 250 244 / 0.96);
   color: var(--ink);
   font-size: 14px;
   font-weight: 600;

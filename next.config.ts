@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   typedRoutes: true,
   cacheComponents: true,
+  partialPrefetching: true,
   /*
    * Запасний зворотний маршрут платіжного провайдера. Редірект саме тут, а не
    * сторінкою з `redirect()`: Cache Components пререндерять оболонку будь-якої

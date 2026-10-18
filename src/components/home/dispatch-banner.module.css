@@ -12,7 +12,7 @@
   position: relative;
   overflow: hidden;
   padding: 40px 24px;
-  border-radius: var(--radius-2xl);
+  border-radius: 18px;
   background: var(--ink);
   color: var(--paper);
 }
@@ -27,30 +27,6 @@
   .panel {
     padding: 64px 56px;
   }
-}
-
-.glowTomato,
-.glowLime {
-  position: absolute;
-  border-radius: var(--radius-pill);
-  filter: blur(90px);
-  pointer-events: none;
-}
-
-.glowTomato {
-  right: -12%;
-  top: -35%;
-  width: 480px;
-  height: 480px;
-  background: rgb(255 75 43 / 0.45);
-}
-
-.glowLime {
-  left: -10%;
-  bottom: -40%;
-  width: 360px;
-  height: 360px;
-  background: rgb(216 255 62 / 0.22);
 }
 
 .inner {
@@ -68,7 +44,7 @@
 }
 
 .eyebrow {
-  color: var(--lime);
+  color: #d9bea7;
 }
 
 .date {
@@ -123,8 +99,8 @@
 }
 
 .tItemHot::before {
-  background: var(--lime);
-  box-shadow: 0 0 0 5px rgb(216 255 62 / 0.2);
+  background: #d9bea7;
+  box-shadow: 0 0 0 5px rgb(217 190 167 / 0.15);
 }
 
 .tWhen {
@@ -132,7 +108,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--lime);
+  color: #d9bea7;
 }
 
 .tWhat {

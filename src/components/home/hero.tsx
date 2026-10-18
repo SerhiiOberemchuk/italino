@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRightIcon, SparklesIcon } from "@/components/ui/icons";
+import { ArrowRightIcon } from "@/components/ui/icons";
 import type { CategoryTint, HomeCategory } from "@/lib/catalog/categories";
 import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import styles from "./hero.module.css";
@@ -30,13 +30,10 @@ function modelsLabel(count: number): string {
 export function Hero({ showcase, modelCount }: Props) {
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
-      <div className={styles.blobLime} aria-hidden="true" />
-      <div className={styles.blobTomato} aria-hidden="true" />
-
       <div className={`wrap ${styles.inner}`}>
         <div className={styles.copy}>
           <p className={styles.pill}>
-            <SparklesIcon /> Щотижнева поставка з Мілана
+            Щотижнева поставка з Мілана
           </p>
           <h1 id="hero-title" className={styles.title}>
             Речі, які працюють <em>щодня</em>.

@@ -10,6 +10,7 @@
 | `/catalog` | Увесь каталог + пошук (`?q=`) | ✅ | 1 |
 | `/catalog/[category]` | Категорія (bags, drinkware, clothing, hats, office, tech, home, travel) з фільтрами | ✅ | 1 |
 | `/product/[slug]` | Сторінка товару (модель + вибір кольору й розміру) | ✅ | 1 |
+| `/product/sku/[sku]` | Пряма сторінка конкретного артикула для публікацій у каналах | ✅ | 1 |
 | `/brands` | Усі бренди | ⏳ | 2 |
 | `/brands/[slug]` | Бренд: Handle Bags, DEMI Design Milano, Utopic | ⏳ | 2 |
 | `/sale` | Sale (кінець серій, `compareAtPrice`) | ⏳ | 2 |
@@ -28,7 +29,7 @@
 | `/account/*` | Кабінет: профіль, адреси, замовлення | 💤 | — |
 | `/favorites` | Обране (localStorage) | 💤 | — |
 | `/legal/offer`, `/legal/terms`, `/legal/privacy`, `/legal/payment` | Оферта, умови використання, конфіденційність, оплата RozetkaPay | ✅ | 3 |
-| `/sitemap.xml` (індекс), `/sitemap-pages.xml`, `/product/sitemap/[id].xml`, `/robots.txt` | SEO-файли | ✅ | 2 |
+| `/sitemap.xml` (індекс), `/sitemap-pages.xml`, `/product/sitemap/[id].xml`, `/product/sku/sitemap/[id].xml`, `/robots.txt` | SEO-файли | ✅ | 2 |
 | `not-found.tsx`, `error.tsx` | Службові (`loading.tsx` не використовуємо — див. ARCHITECTURE.md) | ✅ | 1 |
 
 ## Блоки сторінок

@@ -37,9 +37,6 @@ export function DispatchBanner() {
       aria-labelledby="dispatch-title"
     >
       <div className={styles.panel}>
-        <div className={styles.glowTomato} aria-hidden="true" />
-        <div className={styles.glowLime} aria-hidden="true" />
-
         <div className={styles.inner}>
           <div>
             <p className={`eyebrow ${styles.eyebrow}`}>
@@ -54,8 +51,8 @@ export function DispatchBanner() {
             </p>
             <CutoffCountdown />
             <div className={styles.ctas}>
-              <Link href="/catalog" className="btn btn--lime">
-                Встигнути замовити
+              <Link href="/catalog" className="btn btn--ghost">
+                Переглянути каталог
               </Link>
               <Link href="/contacts" className="btn btn--light">
                 Запитати про замовлення

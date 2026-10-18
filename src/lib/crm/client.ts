@@ -42,7 +42,9 @@ export async function crmGet<T>(
   query: Record<string, string | number | boolean | undefined> = {},
 ): Promise<T> {
   const { url: base, token } = getConfig();
-  if (!/^[a-z][a-z0-9_/-]*$/i.test(path) || path.includes("//")) {
+  if (!/^[a-z][a-z0-9._/-]*$/i.test(path)
+    || path.includes("//")
+    || path.split("/").some((segment) => segment === "." || segment === "..")) {
     throw new CrmError("INVALID_API_PATH");
   }
   const url = new URL(path, base);

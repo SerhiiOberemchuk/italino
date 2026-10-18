@@ -295,7 +295,9 @@ CRM підписує вебхук заголовком `x-obriym-signature: sha2
 | Бренди (фільтр, блок на головній) | `GET /models?perPage=1&facets=true&minPrice=0` → `facets.brands`; логотипи — `GET /brands` |
 | Категорії (фільтр, плитки, sitemap) | `GET /categories?withProductCounts=true&warehouseId=` → лише `modelCount > 0` |
 | Товарний sitemap | `GET /models?perPage=100&page=N&minPrice=0` |
+| Sitemap артикулів | `GET /products?perPage=100&page=N&minPrice=0` з фільтром активних видимих товарів складу ITALINO; адреси `/product/sku/{sku}` |
 | Сторінка товару | `GET /products?productGroupId=` (лише варіанти однієї моделі), лише для ключа з набору `GET /models?perPage=100&page=N` |
+| Пряма сторінка SKU | `GET /products/sku/{sku}`; лише активний, видимий товар складу ITALINO. `/product/sku/{sku}` — однозначна адреса; `/product/{sku}` працює для старих публікацій, якщо цей сегмент не є ключем моделі. |
 | Кошик, checkout | `GET /products/sku/{sku}` |
 
 Футер нічого з CRM не читає. Картка `/models` віддає ціну, фото й SKU

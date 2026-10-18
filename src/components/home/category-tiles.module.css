@@ -26,7 +26,8 @@
   display: block;
   overflow: hidden;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
+  border: 1px solid var(--ink-10);
+  border-radius: 16px;
   transition: transform 0.25s var(--ease);
 }
 
@@ -35,23 +36,23 @@
 }
 
 .tintLime {
-  background: var(--tint-lime);
+  background: #e9e8df;
 }
 
 .tintSky {
-  background: var(--tint-sky);
+  background: #e7e9e8;
 }
 
 .tintTomato {
-  background: var(--tint-tomato);
+  background: #eee6df;
 }
 
 .tintMint {
-  background: var(--tint-mint);
+  background: #e6e9e2;
 }
 
 .tintSand {
-  background: var(--sand);
+  background: #ebe5dd;
 }
 
 /* Packshot на білому тлі: multiply робить біле прозорим на кольоровій плитці */
@@ -87,8 +88,8 @@
   gap: 2px;
   min-width: 0;
   padding: 10px 14px;
-  border-radius: 18px;
-  background: var(--paper);
+  border-radius: 8px;
+  background: rgb(255 250 244 / 0.96);
   color: var(--ink);
   font-weight: 600;
   font-size: 14px;
@@ -111,7 +112,7 @@
   height: 38px;
   border-radius: var(--radius-pill);
   background: var(--ink);
-  color: var(--lime);
+  color: var(--white);
   transition:
     background-color 0.2s var(--ease),
     color 0.2s var(--ease),
@@ -124,7 +125,7 @@
 }
 
 .tile:hover .arrow {
-  background: var(--tomato);
+  background: #a35c49;
   color: var(--white);
   transform: rotate(45deg);
 }

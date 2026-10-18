@@ -12,8 +12,9 @@
   display: grid;
   gap: 32px;
   padding: 32px;
-  border-radius: var(--radius-2xl);
-  background: var(--lime);
+  border: 1px solid var(--ink-10);
+  border-radius: 18px;
+  background: #ebe5db;
   color: var(--ink);
 }
 
