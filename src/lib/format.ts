@@ -34,3 +34,11 @@ export function formatDateTime(value: string | Date): string {
     KYIV_DATE_PARTS.formatToParts(date).find((item) => item.type === type)?.value ?? "";
   return `${part("day")}.${part("month")}.${part("year")}, ${part("hour")}:${part("minute")}`;
 }
+
+const RESTOCK_DATE = new Intl.DateTimeFormat("uk-UA", { timeZone: "UTC", day: "numeric", month: "long" });
+
+/** «4 листопада» з «YYYY-MM-DD» — календарна дата, тож UTC, без зсуву поясом. */
+export function formatRestockDate(value: string): string {
+  const date = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? "" : RESTOCK_DATE.format(date);
+}

@@ -6,7 +6,7 @@ import { useCartStore, useSkuInCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import { trackEvent } from "@/lib/analytics";
 import { swatchColor } from "@/lib/catalog/colors";
-import { isPurchasable, pickVariant, sizesForColor, variantAxes } from "@/lib/catalog/variants";
+import { availabilityLabel, isPurchasable, pickVariant, sellableQuantity, sizesForColor, variantAxes } from "@/lib/catalog/variants";
 import { useVariantSelection } from "@/components/catalog/variant-selection";
 import styles from "@/app/shop.module.css";
 
@@ -46,7 +46,7 @@ export function BuyBox() {
       size: selected.size,
       quantity: 1,
       href: `/product/${encodeURIComponent(key)}`,
-      maxQuantity: selected.stock,
+      maxQuantity: sellableQuantity(selected),
     });
   }
 
@@ -69,9 +69,7 @@ export function BuyBox() {
       </p>
 
       <p className={styles.availability}>
-        {selected.availability === "in_stock"
-          ? `В наявності${selected.stock !== null ? ` · ${selected.stock} шт.` : ""}`
-          : selected.availability === "on_order" ? "Під замовлення" : "Наразі недоступний"}
+        {availabilityLabel(selected)}
       </p>
 
       {showColorSwatches ? (

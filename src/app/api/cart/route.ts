@@ -1,4 +1,5 @@
 import type { CartItem } from "@/lib/cart-item";
+import { sellableQuantity } from "@/lib/catalog/variants";
 import { getStoreProductBySku } from "@/lib/crm/catalog";
 import { allowRequest, clientKey } from "@/lib/rate-limit";
 
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
         || UNAVAILABLE.includes(product.availability)
       ) return [];
 
-      const available = product.stock === null ? 99 : Math.max(0, product.stock);
+      const sellable = sellableQuantity(product);
+      const available = sellable === null ? 99 : sellable;
       const quantity = Math.min(Number.isInteger(requested) ? Math.max(1, requested) : 1, available, 99);
       if (!quantity) return [];
 
@@ -49,7 +51,7 @@ export async function POST(request: Request) {
         size: product.size,
         quantity,
         href: `/product/${encodeURIComponent(key)}?sku=${encodeURIComponent(sku)}`,
-        maxQuantity: product.stock,
+        maxQuantity: sellable,
       }];
     });
     return Response.json({ items });

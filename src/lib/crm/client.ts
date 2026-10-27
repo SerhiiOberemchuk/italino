@@ -1,16 +1,30 @@
 import "server-only";
 
-import type { CrmApiError } from "./types";
+import type { CrmApiError, CrmApiErrorDetail } from "./types";
 
 export class CrmError extends Error {
   constructor(
     public readonly code: string,
     public readonly status: number = 0,
     public readonly requestId?: string,
+    public readonly reason?: string,
+    public readonly details?: CrmApiErrorDetail[],
   ) {
     super(`CRM request failed (${code})`);
     this.name = "CrmError";
   }
+}
+
+/** Єдиний розбір конверта помилки CRM `{ error: { code, reason, details, requestId } }`. */
+function crmErrorFrom(status: number, body: unknown): CrmError {
+  const error = (body as { error?: Partial<CrmApiError> } | null)?.error;
+  return new CrmError(
+    `HTTP_${status}`,
+    status,
+    typeof error?.requestId === "string" ? error.requestId : undefined,
+    typeof error?.reason === "string" ? error.reason : undefined,
+    Array.isArray(error?.details) ? error.details : undefined,
+  );
 }
 
 function getConfig() {
@@ -70,15 +84,7 @@ export async function crmGet<T>(
   } catch {
     throw new CrmError("INVALID_RESPONSE", response.status);
   }
-  if (!response.ok) {
-    const envelope = body as { error?: Partial<CrmApiError> } | null;
-    const error = envelope?.error;
-    throw new CrmError(
-      `HTTP_${response.status}`,
-      response.status,
-      typeof error?.requestId === "string" ? error.requestId : undefined,
-    );
-  }
+  if (!response.ok) throw crmErrorFrom(response.status, body);
   return body as T;
 }
 
@@ -112,13 +118,6 @@ export async function crmPost<T>(path: string, payload: unknown): Promise<T> {
   } catch {
     throw new CrmError("INVALID_RESPONSE", response.status);
   }
-  if (!response.ok) {
-    const error = (body as { error?: Partial<CrmApiError> } | null)?.error;
-    throw new CrmError(
-      `HTTP_${response.status}`,
-      response.status,
-      typeof error?.requestId === "string" ? error.requestId : undefined,
-    );
-  }
+  if (!response.ok) throw crmErrorFrom(response.status, body);
   return body as T;
 }

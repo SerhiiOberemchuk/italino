@@ -5,7 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QuantityField } from "./quantity-field";
 import { useCartStore } from "@/lib/cart";
+import { LOW_STOCK_THRESHOLD } from "@/lib/catalog/variants";
 import { formatPrice } from "@/lib/format";
 import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import styles from "@/app/shop.module.css";
@@ -105,7 +107,6 @@ export function CartPage({ freeShippingFrom }: { freeShippingFrom: number | null
         {items.map((item) => {
           const href = (item.href ?? `/catalog?q=${encodeURIComponent(item.sku)}`) as Route;
           const max = item.maxQuantity;
-          const atLimit = max !== null && max !== undefined && item.quantity >= max;
           return (
             <article className={styles.line} key={item.sku}>
               <Link href={href} className={styles.lineImage} aria-label={`Перейти до товару: ${item.name}`}>
@@ -116,25 +117,9 @@ export function CartPage({ freeShippingFrom }: { freeShippingFrom: number | null
                 <p className={styles.lineMeta}>
                   {[item.color, item.size, `SKU ${item.sku}`].filter(Boolean).join(" · ")}
                 </p>
-                {max !== null && max !== undefined ? <p className={styles.stockNote}>Доступно: {max} шт.</p> : null}
-                <div className={styles.qty}>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(item.sku, item.quantity - 1)}
-                    aria-label="Зменшити кількість"
-                  >
-                    −
-                  </button>
-                  <span>{item.quantity}</span>
-                  <button
-                    type="button"
-                    disabled={atLimit}
-                    onClick={() => setQuantity(item.sku, item.quantity + 1)}
-                    aria-label={atLimit ? "Досягнуто доступний залишок" : "Збільшити кількість"}
-                  >
-                    +
-                  </button>
-                </div>
+                {max !== null && max !== undefined && max <= LOW_STOCK_THRESHOLD ? <p className={styles.stockNote}>Залишилось {max} шт.</p> : null}
+                <QuantityField value={item.quantity} max={max} label={`Кількість: ${item.name}`}
+                  onChange={(quantity) => setQuantity(item.sku, quantity)} />
                 <button className={styles.remove} type="button" onClick={() => setQuantity(item.sku, 0)}>
                   Видалити
                 </button>

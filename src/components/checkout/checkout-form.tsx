@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, use, useActionState, useEffect, useRef } from "react";
+import { Checkbox } from "@heroui/react/checkbox";
+import { FieldError } from "@heroui/react/field-error";
+import { Form } from "@heroui/react/form";
+import { Label } from "@heroui/react/label";
+import { ContactField } from "./contact-field";
 import { submitCheckout, type CheckoutActionState } from "@/app/checkout/actions";
 import { NovaPoshtaFields } from "@/components/checkout/nova-poshta-fields";
 import { NextDispatchDate } from "@/components/home/dispatch-clock";
@@ -16,6 +21,7 @@ import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
 import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import { trackEvent } from "@/lib/analytics";
+import { cartFingerprint, checkoutAttempt, CHECKOUT_ATTEMPT_KEY } from "@/lib/checkout/attempt";
 import styles from "@/app/shop.module.css";
 
 export type CheckoutCapabilities = {
@@ -30,27 +36,7 @@ type Props = { capabilities: Promise<CheckoutCapabilities> };
 type CapabilitiesProps = { capabilities: Promise<CheckoutCapabilities> };
 
 const INITIAL_CHECKOUT_STATE: CheckoutActionState = { status: "idle" };
-const CHECKOUT_ATTEMPT_KEY = "italino-checkout-attempt-v1";
 
-function cartFingerprint(items: ReturnType<typeof useCartStore.getState>["items"]): string {
-  return JSON.stringify(items.map(({ sku, quantity, price, currency }) => ({ sku, quantity, price, currency })));
-}
-
-function checkoutAttempt(fingerprint: string): string {
-  try {
-    const stored = JSON.parse(sessionStorage.getItem(CHECKOUT_ATTEMPT_KEY) ?? "null") as {
-      id?: unknown;
-      fingerprint?: unknown;
-    } | null;
-    const id = stored?.fingerprint === fingerprint && typeof stored.id === "string"
-      ? stored.id
-      : crypto.randomUUID();
-    sessionStorage.setItem(CHECKOUT_ATTEMPT_KEY, JSON.stringify({ id, fingerprint }));
-    return id;
-  } catch {
-    return crypto.randomUUID();
-  }
-}
 
 function hasOnlinePayment(payments: CrmCapabilityMethod[]): boolean {
   return payments.some((method) => method.key === ROZETKAPAY_PAYMENT_KEY);
@@ -169,9 +155,13 @@ export function CheckoutForm({ capabilities }: Props) {
 
   return (
     // Ім’я, телефон, e-mail і відділення не мають потрапляти в записи Clarity.
-    <form
+    <Form
       className={styles.checkoutLayout}
       action={formAction}
+      validationErrors={state.fieldErrors}
+      // React resets uncontrolled fields after any resolved action, including an error response.
+      // Successful checkout already clears the cart and navigates away; keep drafts on retries.
+      render={(props) => <form {...props} onResetCapture={(event) => event.preventDefault()} />}
       onSubmit={() => {
         if (attemptInput.current && !attemptInput.current.value) {
           attemptInput.current.value = checkoutAttempt(cartFingerprint(items));
@@ -190,18 +180,10 @@ export function CheckoutForm({ capabilities }: Props) {
         <section className={styles.section}>
           <h2>1. Контакти</h2>
           <div className={styles.fields}>
-            <label className={styles.field}>Ім’я
-              <input className={styles.input} name="firstName" required maxLength={120} autoComplete="given-name" />
-            </label>
-            <label className={styles.field}>Прізвище
-              <input className={styles.input} name="lastName" required maxLength={120} autoComplete="family-name" />
-            </label>
-            <label className={styles.field}>Телефон
-              <input className={styles.input} name="phone" required maxLength={50} autoComplete="tel" placeholder="+380…" />
-            </label>
-            <label className={styles.field}>E-mail
-              <input className={styles.input} name="email" type="email" required maxLength={255} autoComplete="email" />
-            </label>
+            <ContactField label="Ім’я" name="firstName" maxLength={120} autoComplete="given-name" />
+            <ContactField label="Прізвище" name="lastName" maxLength={120} autoComplete="family-name" />
+            <ContactField label="Телефон" name="phone" type="tel" maxLength={50} autoComplete="tel" placeholder="+380…" />
+            <ContactField label="E-mail" name="email" type="email" maxLength={255} autoComplete="email" />
           </div>
         </section>
 
@@ -278,18 +260,21 @@ export function CheckoutForm({ capabilities }: Props) {
           <Link href="/legal/payment" target="_blank">Умови оплати</Link> ·{" "}
           <Link href="/returns" target="_blank">Обмін і повернення</Link>
         </p>
-        <label className={styles.consent}>
-          <input type="checkbox" name="consent" value="accepted" required />
-          <span>
-            Погоджуюся з <Link href="/legal/offer" target="_blank">публічною офертою</Link> та{" "}
-            <Link href="/legal/privacy" target="_blank">політикою конфіденційності</Link>.
-          </span>
-        </label>
+        <Checkbox className={styles.consentField} name="consent" value="accepted" isRequired>
+          <Checkbox.Content className={styles.consent}>
+            <Checkbox.Control className={styles.consentControl}><Checkbox.Indicator /></Checkbox.Control>
+            <Label>
+              Погоджуюся з <Link href="/legal/offer" target="_blank">публічною офертою</Link> та{" "}
+              <Link href="/legal/privacy" target="_blank">політикою конфіденційності</Link>.
+            </Label>
+          </Checkbox.Content>
+          <FieldError className={styles.fieldError} />
+        </Checkbox>
         <Suspense fallback={<button className={styles.primary} disabled>Перейти до оплати</button>}>
           <SubmitButton capabilities={capabilities} total={total} hydrated={hydrated} pending={pending} />
         </Suspense>
         <p className={styles.lineMeta}>Після створення замовлення відкриється захищена платіжна сторінка RozetkaPay.</p>
       </aside>
-    </form>
+    </Form>
   );
 }

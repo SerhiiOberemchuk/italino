@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Drawer } from "@heroui/react/drawer";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { MenuIcon } from "@/components/ui/icons";
 import styles from "./mobile-menu.module.css";
@@ -23,55 +24,31 @@ const SERVICE = [
 /** Кабінет покупця на адресі магазину в CRM — лише коли він відкритий. */
 export function MobileMenu({ accountUrl = null }: { accountUrl?: string | null }) {
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
-
   useEffect(() => {
-    if (!open) return;
-
-    closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-
-    // Сторінка під шухлядою не повинна прокручуватися разом із нею.
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
-
-  /** Закриття з клавіатури або кнопкою повертає фокус на бургер. */
-  function close() {
-    setOpen(false);
-    triggerRef.current?.focus();
-  }
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   return (
-    <div className={styles.root}>
-      <button
-        ref={triggerRef}
+    <Drawer isOpen={open} onOpenChange={setOpen}>
+      <Drawer.Trigger
         type="button"
         className={styles.trigger}
         aria-label="Відкрити меню"
-        aria-expanded={open}
-        {...(open ? { "aria-controls": "mobile-navigation" } : {})}
-        onClick={() => setOpen((value) => !value)}
       >
         <MenuIcon />
-      </button>
-
-      {open ? (
+      </Drawer.Trigger>
+      <Drawer.Backdrop className={styles.backdrop}>
+        <Drawer.Content className={styles.content} placement="left">
+          <Drawer.Dialog className={styles.dialog} aria-label="Мобільне меню">
         <nav className={styles.menu} id="mobile-navigation" aria-label="Мобільна навігація">
           <div className={styles.head}>
             <Link href="/" className={styles.logo} aria-label="Italino — на головну" onClick={() => setOpen(false)}>
               <BrandLogo />
             </Link>
-            <button ref={closeRef} type="button" onClick={close} aria-label="Закрити меню">×</button>
+            <Drawer.CloseTrigger autoFocus aria-label="Закрити меню">×</Drawer.CloseTrigger>
           </div>
 
           <div className={styles.body}>
@@ -91,7 +68,9 @@ export function MobileMenu({ accountUrl = null }: { accountUrl?: string | null }
             ))}
           </div>
         </nav>
-      ) : null}
-    </div>
+          </Drawer.Dialog>
+        </Drawer.Content>
+      </Drawer.Backdrop>
+    </Drawer>
   );
 }

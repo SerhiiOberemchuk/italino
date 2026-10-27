@@ -1,4 +1,5 @@
 import type { CrmProduct } from "@/lib/crm/types";
+import { formatRestockDate } from "@/lib/format";
 import { sortSizes } from "@/lib/catalog/product-cards";
 
 /**
@@ -10,14 +11,46 @@ import { sortSizes } from "@/lib/catalog/product-cards";
 
 const UNAVAILABLE_STATUSES = ["out_of_stock", "discontinued"];
 
+/** Скільки одиниць лишилось, щоб показати «Залишилось N шт.». */
+export const LOW_STOCK_THRESHOLD = 5;
+
+/**
+ * Скільки одиниць можна продати: `availableQuantity` (залишок мінус резерв,
+ * не менше 0); для старішої CRM без цього поля — `stock`; null — облік не ведеться.
+ */
+export function sellableQuantity(product: CrmProduct): number | null {
+  if (typeof product.availableQuantity === "number") return Math.max(0, product.availableQuantity);
+  if (typeof product.stock === "number") return Math.max(0, product.stock);
+  return null;
+}
+
 /** Той самий критерій «можна додати в кошик», що й у BuyBox. */
 export function isPurchasable(product: CrmProduct): boolean {
   return Boolean(
     product.sku
     && product.price !== null
-    && (product.stock === null || product.stock > 0)
+    && sellableLeft(product)
     && !UNAVAILABLE_STATUSES.includes(product.availability),
   );
+}
+
+function sellableLeft(product: CrmProduct): boolean {
+  const sellable = sellableQuantity(product);
+  return sellable === null || sellable > 0;
+}
+
+/** Підпис наявності на сторінці товару. */
+export function availabilityLabel(product: CrmProduct): string {
+  if (!isPurchasable(product)) {
+    return product.expectedRestockDate
+      ? `Немає в наявності · очікується ${formatRestockDate(product.expectedRestockDate)}`
+      : "Немає в наявності";
+  }
+  if (product.availability === "preorder") return "Передзамовлення";
+  if (product.availability === "on_order") return "Під замовлення";
+  const sellable = sellableQuantity(product);
+  if (sellable !== null && sellable <= LOW_STOCK_THRESHOLD) return `Залишилось ${sellable} шт.`;
+  return "В наявності";
 }
 
 export type VariantAxes = {

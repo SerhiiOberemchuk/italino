@@ -97,20 +97,21 @@ export function CatalogFilters() {
         apply({});
       }}
     >
-      <label className={styles.field}>
-        Категорія
-        <span className={styles.nativeSelect}>
-          <select name="category" value={categoryPath} onChange={(event) => apply({ path: event.target.value })}>
-            <option value="/catalog">Усі категорії</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.href}>
-                {`${"  ".repeat(category.depth)}${category.depth ? "↳ " : ""}${category.name}`}
-              </option>
-            ))}
-          </select>
-          <span aria-hidden="true" />
-        </span>
-      </label>
+      <CustomSelect
+        label="Категорія"
+        name="category"
+        value={categoryPath}
+        onValueChange={(value) => apply({ path: value })}
+        options={[
+          { value: "/catalog", label: "Усі категорії" },
+          ...categories.map((category) => ({
+            id: category.id,
+            value: category.href,
+            label: category.name,
+            depth: category.depth,
+          })),
+        ]}
+      />
       <label className={styles.field}>
         Пошук
         <input

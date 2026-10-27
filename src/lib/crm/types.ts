@@ -44,6 +44,10 @@ export type CrmProduct = {
   material: string | null;
   /** null, якщо для товару не ведеться облік залишків (trackInventory=false). */
   stock: number | null;
+  /** Одиниці, доступні до продажу (залишок мінус резерв). null — облік не ведеться; може бути від’ємним. */
+  availableQuantity?: number | null;
+  /** «YYYY-MM-DD»; CRM віддає лише поки нічого немає в наявності. */
+  expectedRestockDate?: string | null;
   tags: string[];
   updatedAt: string;
 };
@@ -139,11 +143,22 @@ export type CrmOrderStatus =
   | "cancelled"
   | "refunded";
 
+export type CrmApiErrorDetail = {
+  field: string;
+  message: string;
+  sku?: string;
+  requested?: number;
+  available?: number;
+};
+
 export type CrmApiError = {
+  type?: string;
   code: string;
+  /** Уточнення коду, напр. `insufficient_stock`. */
+  reason?: string;
   message: string;
   requestId: string;
-  details?: { field: string; message: string }[];
+  details?: CrmApiErrorDetail[];
 };
 
 export type CrmCapabilityMethod = {

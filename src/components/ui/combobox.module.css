@@ -1,17 +1,18 @@
-.field { position: relative; display: grid; gap: 7px; }
-
+.field { display: grid; gap: 7px; min-width: 0; }
 .label { font-size: 13px; font-weight: 600; }
-
-.input { width: 100%; min-height: 46px; padding: 10px 13px; border: 1px solid var(--ink-10); border-radius: 10px; background: var(--white); color: var(--ink); font: inherit; }
-.input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+.inputGroup { position: relative; display: flex; min-width: 0; }
+.input { width: 100%; min-height: 48px; padding: 10px 42px 10px 13px; border: 1px solid var(--ink-10); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; font-size: 16px; }
+.input:focus { outline: 2px solid var(--ink-50); outline-offset: 1px; }
 .input:disabled { background: var(--sand); color: var(--ink-50); }
-
+.trigger { position: absolute; inset-block: 0; right: 0; width: 40px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 12px; }
+.trigger svg { width: 18px; height: 18px; }
 .hint { color: var(--ink-70); font-size: 12px; font-weight: 400; }
-
-.menu { position: absolute; z-index: 20; top: 100%; left: 0; right: 0; max-height: 280px; overflow-y: auto; overscroll-behavior: contain; margin-top: 6px; padding: 6px; border: 1px solid var(--ink-10); border-radius: 14px; background: var(--white); box-shadow: var(--shadow-lg); }
-
-.option { display: block; width: 100%; padding: 10px 11px; border: 0; border-radius: 9px; background: transparent; color: var(--ink); font: inherit; text-align: left; }
-.optionActive { background: var(--sand); }
-.option[aria-selected="true"] { font-weight: 600; }
-
+.error { color: #8a2415; font-size: 13px; }
+.menu { z-index: 150; width: var(--trigger-width); max-width: calc(100vw - 24px); overflow: hidden; border: 1px solid var(--ink-10); border-radius: 14px; background: var(--white); box-shadow: var(--shadow-lg); }
+.listBox { max-height: inherit; overflow-y: auto; overscroll-behavior: contain; padding: 6px; outline: none; }
+.option { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 10px 11px; border-radius: 9px; color: var(--ink); cursor: pointer; overflow-wrap: anywhere; }
+.option[data-focused] { outline: none; background: var(--paper); }
+.option[data-selected] { background: var(--sand); font-weight: 600; }
+.check { display: flex; flex: 0 0 18px; color: var(--tomato-dark); }
+.check svg { width: 16px; height: 16px; }
 .status { padding: 12px 11px; color: var(--ink-70); font-size: 14px; }

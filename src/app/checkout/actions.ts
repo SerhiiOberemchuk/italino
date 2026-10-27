@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import type { CartItem } from "@/lib/cart-item";
+import { sellableQuantity } from "@/lib/catalog/variants";
 import { getCapabilities, getLiveProductBySku } from "@/lib/crm/catalog";
 import { crmPost, CrmError } from "@/lib/crm/client";
 import { getOrCreatePaymentLink, getStoreOrderStatus } from "@/lib/crm/orders";
@@ -12,10 +13,12 @@ import { shippingMethod } from "@/lib/shipping/methods";
 import { formatDispatchDate, nextDispatch } from "@/lib/shipping/schedule";
 import { storefrontUrl } from "@/lib/site-url";
 import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
+import { checkoutContactErrors, type CheckoutFieldErrors } from "@/lib/checkout/contact-validation";
 
 export type CheckoutActionState = {
   status: "idle" | "error" | "cart_changed" | "success";
   message?: string;
+  fieldErrors?: CheckoutFieldErrors;
   items?: CartItem[];
   orderId?: string;
   paymentUrl?: string;
@@ -33,7 +36,6 @@ type RequestedLine = {
 const UNAVAILABLE = ["out_of_stock", "discontinued"];
 const ATTEMPT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const NP_REF = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const EMAIL = /^\S+@\S+\.\S+$/;
 
 function text(value: FormDataEntryValue | null, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -85,8 +87,64 @@ function currentCartItem(product: CrmProduct, quantity: number): CartItem {
     size: product.size,
     quantity,
     href: `/product/${encodeURIComponent(key)}?sku=${encodeURIComponent(product.sku ?? "")}`,
-    maxQuantity: product.stock,
+    maxQuantity: sellableQuantity(product),
   };
+}
+
+/** Звіряє запитаний кошик із живими даними CRM: ціна, статус, наявність. */
+async function reconcileCart(requested: RequestedLine[]): Promise<{ cartItems: CartItem[]; cartChanged: boolean }> {
+  const liveProducts = new Map(
+    (await Promise.all(requested.map(async ({ sku }) => [sku, await getLiveProductBySku(sku)] as const)))
+      .filter((entry): entry is readonly [string, CrmProduct] => entry[1] !== null),
+  );
+  const cartItems: CartItem[] = [];
+  let cartChanged = false;
+
+  for (const line of requested) {
+    const product = liveProducts.get(line.sku);
+    if (
+      !product
+      || !product.sku
+      || product.price === null
+      || product.currency !== "UAH"
+      || product.status !== "active"
+      || UNAVAILABLE.includes(product.availability)
+    ) {
+      cartChanged = true;
+      continue;
+    }
+
+    const sellable = sellableQuantity(product);
+    const available = sellable === null ? 99 : Math.min(99, Math.floor(sellable));
+    const quantity = Math.min(line.quantity, available);
+    if (quantity < 1) {
+      cartChanged = true;
+      continue;
+    }
+    cartItems.push(currentCartItem(product, quantity));
+    if (quantity !== line.quantity || product.price !== line.price || product.currency !== line.currency) {
+      cartChanged = true;
+    }
+  }
+  return { cartItems, cartChanged: cartChanged || cartItems.length !== requested.length };
+}
+
+/** Кошик після відмови CRM `insufficient_stock`: кількості зрізано до `available`, нульові рядки прибрано. */
+async function cartAfterStockRefusal(requested: RequestedLine[], error: CrmError): Promise<CartItem[]> {
+  const availableBySku = new Map<string, number>();
+  for (const detail of error.details ?? []) {
+    if (detail.sku && typeof detail.available === "number") {
+      availableBySku.set(detail.sku, Math.max(0, Math.floor(detail.available)));
+    }
+  }
+  if (!availableBySku.size) return (await reconcileCart(requested)).cartItems;
+
+  const clamped = requested.flatMap((line) => {
+    const available = availableBySku.get(line.sku);
+    const quantity = available === undefined ? line.quantity : Math.min(line.quantity, available);
+    return quantity < 1 ? [] : [{ ...line, quantity }];
+  });
+  return clamped.length ? (await reconcileCart(clamped)).cartItems : [];
 }
 
 function validPaymentUrl(value: string | undefined): value is string {
@@ -163,43 +221,13 @@ export async function submitCheckout(
   const shipping = text(formData.get("shipping"), 120);
   const payment = text(formData.get("payment"), 50);
   const consent = text(formData.get("consent"), 20);
-  if (!firstName || !lastName || !phone || !email || !city || !EMAIL.test(email) || consent !== "accepted") {
-    return { status: "error", message: "Перевірте контактні дані та підтвердьте згоду." };
+  const fieldErrors = checkoutContactErrors({ firstName, lastName, phone, email, city, consent });
+  if (Object.keys(fieldErrors).length) {
+    return { status: "error", message: "Перевірте позначені поля.", fieldErrors };
   }
 
   try {
-    const liveProducts = new Map(
-      (await Promise.all(requested.map(async ({ sku }) => [sku, await getLiveProductBySku(sku)] as const)))
-        .filter((entry): entry is readonly [string, CrmProduct] => entry[1] !== null),
-    );
-    const cartItems: CartItem[] = [];
-    let cartChanged = false;
-
-    for (const line of requested) {
-      const product = liveProducts.get(line.sku);
-      if (
-        !product
-        || !product.sku
-        || product.price === null
-        || product.currency !== "UAH"
-        || product.status !== "active"
-        || UNAVAILABLE.includes(product.availability)
-      ) {
-        cartChanged = true;
-        continue;
-      }
-
-      const available = product.stock === null ? 99 : Math.max(0, Math.min(99, Math.floor(product.stock)));
-      const quantity = Math.min(line.quantity, available);
-      if (quantity < 1) {
-        cartChanged = true;
-        continue;
-      }
-      cartItems.push(currentCartItem(product, quantity));
-      if (quantity !== line.quantity || product.price !== line.price || product.currency !== line.currency) {
-        cartChanged = true;
-      }
-    }
+    const { cartItems, cartChanged } = await reconcileCart(requested);
 
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     if (cartChanged || cartItems.length !== requested.length) {
@@ -226,7 +254,8 @@ export async function submitCheckout(
       (method) => method.key === ROZETKAPAY_PAYMENT_KEY && method.paymentLink,
     );
     if (!delivery) return { status: "error", message: "Обраний спосіб доставки недоступний." };
-    if (!branch) return { status: "error", message: "Вкажіть відділення або поштомат Нової Пошти." };
+    if (!branch) return { status: "error", message: "Вкажіть відділення або поштомат Нової Пошти.",
+      fieldErrors: { branchRef: "Оберіть відділення або поштомат зі списку" } };
     if (payment !== ROZETKAPAY_PAYMENT_KEY || !rozetkapay) {
       return { status: "error", message: "Онлайн-оплата тимчасово недоступна. Спробуйте пізніше." };
     }
@@ -247,6 +276,7 @@ export async function submitCheckout(
     try {
       order = await crmPost<CrmOrderIntakeResponse>("orders", {
         externalId: orderId,
+        stockCheck: "strict",
         currency: "UAH",
         items: lines,
         customer: {
@@ -277,6 +307,15 @@ export async function submitCheckout(
       if (error instanceof CrmError && error.status === 409) {
         const existing = await recoverCheckout(orderId);
         if (existing) return existing;
+        if (error.reason === "insufficient_stock") {
+          const items = await cartAfterStockRefusal(requested, error);
+          return {
+            status: "cart_changed",
+            message: "Наявність змінилася. Ми оновили кошик — перевірте його перед оплатою.",
+            items,
+            total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+          };
+        }
       }
       throw error;
     }

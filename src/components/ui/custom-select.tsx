@@ -1,19 +1,22 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { Header } from "@heroui/react/header";
+import { Label } from "@heroui/react/label";
+import { ListBox } from "@heroui/react/list-box";
+import { Select } from "@heroui/react/select";
 import styles from "./custom-select.module.css";
 
 export type SelectOption<Value extends string = string> = {
+  id?: string;
   value: Value;
   label: string;
+  /** Вкладеність категорії з CRM. */
+  depth?: number;
 };
+
+type MenuItem<Value extends string> = SelectOption<Value> & { id: string };
+type MenuGroup<Value extends string> = { id: string; title?: string; items: MenuItem<Value>[] };
 
 type CustomSelectProps<Value extends string> = {
   label: string;
@@ -23,122 +26,97 @@ type CustomSelectProps<Value extends string> = {
   onValueChange: (value: Value) => void;
 };
 
-export function CustomSelect<Value extends string>({
-  label,
-  name,
-  value,
-  options,
-  onValueChange,
-}: CustomSelectProps<Value>) {
-  const id = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const [open, setOpen] = useState(false);
-  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
-  const selected = options[selectedIndex] ?? options[0];
+/** Секції HeroUI зберігають дерево CRM та окремий вибір батьківської категорії. */
+function groupOptions<Value extends string>(items: MenuItem<Value>[]): MenuGroup<Value>[] {
+  const groups: MenuGroup<Value>[] = [];
+  let current: MenuGroup<Value> | undefined;
+  for (const item of items) {
+    if (!current || !item.depth) {
+      current = { id: `section-${item.id}`, title: item.depth === 0 ? item.label : undefined, items: [] };
+      groups.push(current);
+    }
+    current.items.push(item);
+  }
+  return groups;
+}
 
-  /*
-   * Cache Components ховають маршрут через <Activity> замість розмонтування,
-   * тож відкритий список пережив би перехід і повернення на сторінку. Для
-   * транзієнтного popover це неочікувано — закриваємо синхронно перед тим,
-   * як маршрут стане прихованим.
-   */
+export function CustomSelect<Value extends string>({ label, name, value, options, onValueChange }: CustomSelectProps<Value>) {
+  const [open, setOpen] = useState(false);
+  const listBoxRef = useRef<HTMLDivElement>(null);
+  // ID пункту відокремлений від URL: різні CRM-категорії можуть мати однаковий slug.
+  const items = options.map((option, index) => ({ ...option, id: option.id ?? `${name}-${index}` }));
+  const groups = groupOptions(items);
+  const selected = items.find((option) => option.value === value) ?? items[0];
+
+  // Cache Components ховають маршрут через Activity: не відновлюємо відкритий список.
   useLayoutEffect(() => () => setOpen(false), []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
+    const frame = requestAnimationFrame(() => {
+      const listBox = listBoxRef.current;
+      const option = listBox?.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (listBox && option) {
+        listBox.scrollTop += option.getBoundingClientRect().top - listBox.getBoundingClientRect().top
+          - (listBox.clientHeight - option.offsetHeight) / 2;
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
 
-    optionRefs.current[selectedIndex]?.focus();
-    const closeOnOutsideClick = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
-  }, [open, selectedIndex]);
-
-  function choose(nextValue: Value) {
-    onValueChange(nextValue);
-    setOpen(false);
-    requestAnimationFrame(() => triggerRef.current?.focus());
-  }
-
-  function moveFocus(event: KeyboardEvent<HTMLButtonElement>, direction: 1 | -1) {
-    event.preventDefault();
-    const current = optionRefs.current.indexOf(event.currentTarget);
-    const next = (current + direction + options.length) % options.length;
-    optionRefs.current[next]?.focus();
+  function renderItem(option: MenuItem<Value>, isGroupParent = false) {
+    return (
+      <ListBox.Item
+        key={option.id}
+        id={option.id}
+        textValue={option.label}
+        className={styles.option}
+        style={{ paddingInlineStart: 11 + Math.max(0, Math.min(4, option.depth ?? 0) - 1) * 14 }}
+      >
+        <Label className={styles.optionLabel}>{isGroupParent ? "Усі товари категорії" : option.label}</Label>
+        <ListBox.ItemIndicator className={styles.check} />
+      </ListBox.Item>
+    );
   }
 
   return (
-    <div
+    <Select
       className={styles.field}
-      ref={rootRef}
-      onBlur={() => {
-        requestAnimationFrame(() => {
-          if (!rootRef.current?.contains(document.activeElement)) setOpen(false);
-        });
+      variant="secondary"
+      fullWidth
+      value={selected?.id ?? null}
+      onChange={(id) => {
+        const option = items.find((item) => item.id === id);
+        if (option) onValueChange(option.value);
       }}
+      isOpen={open}
+      onOpenChange={setOpen}
+      isDisabled={!items.length}
     >
-      <span className={styles.label} id={`${id}-label`}>{label}</span>
+      <Label className={styles.label}>{label}</Label>
       <input type="hidden" name={name} value={value} />
-      <button
-        ref={triggerRef}
-        type="button"
-        className={styles.trigger}
-        aria-labelledby={`${id}-label ${id}-value`}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={`${id}-listbox`}
-        onClick={() => setOpen((current) => !current)}
-        onKeyDown={(event) => {
-          if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
-            event.preventDefault();
-            setOpen(true);
-          }
-        }}
+      <Select.Trigger className={styles.trigger}>
+        <Select.Value className={styles.value}>{selected?.label}</Select.Value>
+        <Select.Indicator className={styles.chevron} />
+      </Select.Trigger>
+      <Select.Popover
+        className={styles.menu}
+        placement="bottom start"
+        offset={6}
+        containerPadding={12}
+        maxHeight={360}
+        scrollRef={listBoxRef}
+        shouldFlip
       >
-        <span className={styles.value} id={`${id}-value`}>{selected?.label}</span>
-        <span className={styles.chevron} aria-hidden="true" />
-      </button>
-      {open ? (
-        <div className={styles.menu} id={`${id}-listbox`} role="listbox" aria-labelledby={`${id}-label`}>
-          {options.map((option, index) => {
-            const active = option.value === value;
-            return (
-              <button
-                key={option.value}
-                ref={(node) => { optionRefs.current[index] = node; }}
-                type="button"
-                role="option"
-                aria-selected={active}
-                className={active ? `${styles.option} ${styles.optionActive}` : styles.option}
-                onClick={() => choose(option.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowDown") moveFocus(event, 1);
-                  if (event.key === "ArrowUp") moveFocus(event, -1);
-                  if (event.key === "Home") {
-                    event.preventDefault();
-                    optionRefs.current[0]?.focus();
-                  }
-                  if (event.key === "End") {
-                    event.preventDefault();
-                    optionRefs.current.at(-1)?.focus();
-                  }
-                  if (event.key === "Escape") {
-                    event.preventDefault();
-                    setOpen(false);
-                    requestAnimationFrame(() => triggerRef.current?.focus());
-                  }
-                }}
-              >
-                <span>{option.label}</span>
-                {active ? <span className={styles.check} aria-hidden="true">✓</span> : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
+        <ListBox ref={listBoxRef} className={styles.listBox} aria-label={label}>
+          {groups.map((group) => group.title && group.items.length > 1 ? (
+            <ListBox.Section key={group.id} className={styles.section}>
+              <Header className={styles.sectionHeader}>{group.title}</Header>
+              {group.items.map((option, index) => renderItem(option, index === 0))}
+            </ListBox.Section>
+          ) : group.items.map((option) => renderItem(option)))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   );
 }

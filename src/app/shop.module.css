@@ -14,11 +14,8 @@
 /* Поля фільтрів — 16px: однаково з кастомним селектом і без автозбільшення на iOS. */
 .filters .input { min-height: 48px; border-radius: 12px; font-size: 16px; font-weight: 400; }
 .filters .input:hover { border-color: var(--ink); }
-.nativeSelect { position: relative; display: block; }
-.nativeSelect select { width: 100%; min-height: 48px; appearance: none; padding: 10px 38px 10px 14px; border: 1px solid var(--ink-10); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; font-size: 16px; font-weight: 400; cursor: pointer; }
-.nativeSelect select:hover { border-color: var(--ink); }
-.nativeSelect select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-.nativeSelect > span, .controlChevron { position: absolute; top: 50%; right: 17px; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.field .input { min-height: 48px; border-radius: 12px; font-size: 16px; font-weight: 400; }
+.controlChevron { position: absolute; top: 50%; right: 17px; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
 .controlSkeleton { position: relative; display: flex; min-height: 48px; align-items: center; padding: 10px 38px 10px 14px; border: 1px solid var(--ink-10); border-radius: 12px; background: var(--white); font-size: 16px; font-weight: 400; }
 /* Каталог: результати. Під час переходу старі товари спершу притемнюються; якщо відповідь
    затримується довше за .24s — на їхнє місце стає скелетон, і швидкі відповіді не блимають ним. */
@@ -86,6 +83,11 @@
 .qty button, .remove { border: 1px solid var(--ink-10); border-radius: 8px; background: var(--white); cursor: pointer; }
 .qty button { width: 30px; height: 30px; }
 .qty button:disabled { cursor: not-allowed; opacity: .35; }
+.qty button { display: grid; place-items: center; }
+.qty button svg { width: 14px; height: 14px; }
+.qty input { width: 3.5em; min-height: 32px; border: 1px solid var(--ink-10); border-radius: 8px; background: var(--white); text-align: center; font: inherit; }
+.qty input:focus-visible { outline: 2px solid var(--ink-50); outline-offset: 1px; }
+.fieldError { color: #8a2415; font-size: 13px; font-weight: 400; }
 .remove { margin-top: 8px; padding: 5px 9px; color: var(--tomato); }
 .summary { align-self: start; padding: 24px; border-radius: var(--radius-lg); background: var(--sand); }
 .summary h2 { margin-bottom: 18px; font-family: var(--font-display); font-size: 28px; }
@@ -105,6 +107,15 @@
 .consent { display: flex; align-items: flex-start; gap: 9px; margin-top: 18px; color: var(--ink-70); font-size: 13px; line-height: 1.5; }
 .consent input { flex: 0 0 auto; margin-top: 3px; }
 .consent a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.consentField { display: grid; gap: 7px; margin-top: 18px; }
+.consentField .consent { margin-top: 0; }
+.consent { flex-wrap: wrap; }
+.consent > span:not(.consentControl) { flex: 1; }
+.consent > .fieldError { flex-basis: 100%; }
+.consentControl { display: grid; place-items: center; width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; border: 1px solid var(--ink-50); border-radius: 4px; }
+.consent[data-selected] .consentControl { background: var(--sand); }
+.consentControl svg { width: 14px; height: 14px; }
+.consent[data-focus-visible] .consentControl { outline: 2px solid var(--ink-50); outline-offset: 2px; }
 .error { padding: 12px; border-radius: 10px; background: #ffe8e2; color: #8a2415; }
 .success { max-width: 720px; margin: 30px auto; padding: 42px; border-radius: var(--radius-lg); background: var(--white); text-align: center; }
 .success h1 { font-family: var(--font-display); font-size: clamp(38px, 6vw, 64px); font-weight: 500; }
