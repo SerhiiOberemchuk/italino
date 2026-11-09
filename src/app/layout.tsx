@@ -4,6 +4,7 @@ import { Onest, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { Analytics } from "@/components/analytics/analytics";
+import { AttributionCapture } from "@/components/analytics/attribution-capture";
 import { CONSENT_DEFAULTS_SCRIPT } from "@/components/analytics/consent-defaults";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd).replace(/</g, "\\u003c") }} />
         <StoreHydrator />
+        <AttributionCapture />
         {/* Згода Google — до gtag('config'), тому beforeInteractive. */}
         <Script id="ga-consent-default" strategy="beforeInteractive">{CONSENT_DEFAULTS_SCRIPT}</Script>
         <Analytics host={publicSiteUrl().hostname.replace(/^www\./, "")} />

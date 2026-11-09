@@ -21,6 +21,7 @@ import { SCHEDULE_COPY } from "@/lib/shipping/schedule";
 import { ROZETKAPAY_PAYMENT_KEY } from "@/lib/store";
 import { amountToFreeShipping, qualifiesForFreeShipping } from "@/lib/shipping/free-shipping";
 import { trackEvent } from "@/lib/analytics";
+import { serializeStoredAttribution } from "@/lib/attribution";
 import { cartFingerprint, checkoutAttempt, CHECKOUT_ATTEMPT_KEY } from "@/lib/checkout/attempt";
 import styles from "@/app/shop.module.css";
 
@@ -117,6 +118,7 @@ export function CheckoutForm({ capabilities }: Props) {
   const [state, formAction, pending] = useActionState(submitCheckout, INITIAL_CHECKOUT_STATE);
   const handledOrder = useRef<string | null>(null);
   const attemptInput = useRef<HTMLInputElement>(null);
+  const attributionInput = useRef<HTMLInputElement>(null);
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const selected = SHIPPING_METHODS[0];
@@ -166,11 +168,20 @@ export function CheckoutForm({ capabilities }: Props) {
         if (attemptInput.current && !attemptInput.current.value) {
           attemptInput.current.value = checkoutAttempt(cartFingerprint(items));
         }
+        // Читаємо в момент відправки: візит міг бути записаний уже після першого рендера.
+        if (attributionInput.current) {
+          try {
+            attributionInput.current.value = serializeStoredAttribution(window.localStorage);
+          } catch {
+            attributionInput.current.value = "";
+          }
+        }
         trackEvent("checkout_submit");
       }}
       data-clarity-mask="True"
     >
       <input ref={attemptInput} type="hidden" name="attemptId" defaultValue="" />
+      <input ref={attributionInput} type="hidden" name="attribution" defaultValue="" />
       <input
         type="hidden"
         name="items"

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import type { StoreOrderStatus } from "@/lib/crm/orders";
+import { trackAdsConversion, trackEvent } from "@/lib/analytics";
+import { trackPurchaseOnce } from "@/lib/purchase-event";
 import { STORE } from "@/lib/store";
 import styles from "./order-status.module.css";
 
@@ -77,6 +79,20 @@ export function OrderStatus({ initialOrder, freeShipping }: Props) {
       setLoading(false);
     }
   }
+
+  // GA-скрипт вантажиться асинхронно, тож `purchase` ще кілька секунд пробуємо повторити.
+  useEffect(() => {
+    if (order.paymentStatus !== "paid") return;
+    let storage: Storage | null = null;
+    try { storage = window.localStorage; } catch { /* без сховища захист від повтору слабший */ }
+    const send = () => trackPurchaseOnce(order, storage, trackEvent, trackAdsConversion);
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      if (send() || ++attempts >= 10) window.clearInterval(timer);
+    }, 1_000);
+    if (send()) window.clearInterval(timer);
+    return () => window.clearInterval(timer);
+  }, [order]);
 
   const paid = order.paymentStatus === "paid";
   const canPay = !paid && !["cancelled", "refunded"].includes(order.orderStatus);

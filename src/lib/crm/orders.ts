@@ -29,6 +29,8 @@ type CrmOrderDetail = {
 
 /** Рядок квитанції. `total` уже з урахуванням знижки рядка. */
 export type StoreOrderItem = {
+  /** id товару CRM (те саме, що offerId у Google Merchant); `null` для рядка без товару каталогу. */
+  productId: string | null;
   name: string;
   sku: string | null;
   quantity: number;
@@ -88,6 +90,7 @@ function orderItems(raw: unknown): StoreOrderItem[] {
     if (typeof item.productName !== "string" || !Number.isFinite(quantity) || !Number.isFinite(unitPrice)) return [];
     const discount = Number(item.discount ?? 0);
     return [{
+      productId: typeof item.productId === "string" && item.productId ? item.productId : null,
       name: item.productName,
       sku: typeof item.sku === "string" && item.sku ? item.sku : null,
       quantity,

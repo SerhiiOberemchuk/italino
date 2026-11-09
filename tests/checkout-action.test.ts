@@ -69,3 +69,23 @@ describe("checkout server contract", () => {
     expect(crmPost).not.toHaveBeenCalled();
   });
 });
+describe("checkout attribution", () => {
+  const mockOrder = () => vi.mocked(crmPost).mockImplementation(async (path: string) =>
+    path === "orders" ? {data:{externalId:`italino-${id}`,deduplicated:false}} : {data:{checkoutUrl:"https://payments.example.com/new"}});
+  const sentBody = () => vi.mocked(crmPost).mock.calls.find(([path])=>path === "orders")![1] as Record<string, unknown>;
+  it("passes a validated attribution block and omits it when empty or malformed", async () => {
+    mockOrder();
+    const data = checkoutData();
+    data.set("attribution", JSON.stringify({first:{t:1,v:{utm_source:"google",gclid:"abc",junk:"x"}}}));
+    expect((await submitCheckout({status:"idle"},data)).status).toBe("success");
+    expect(sentBody().attribution).toEqual({utmSource:"google",clickId:"abc",clickIdParam:"gclid"});
+    vi.mocked(crmPost).mockClear();
+    mockOrder();
+    for (const raw of ["", "{broken"]) {
+      vi.mocked(crmPost).mockClear();
+      const plain = checkoutData(); plain.set("attribution", raw);
+      expect((await submitCheckout({status:"idle"},plain)).status).toBe("success");
+      expect("attribution" in sentBody()).toBe(false);
+    }
+  });
+});

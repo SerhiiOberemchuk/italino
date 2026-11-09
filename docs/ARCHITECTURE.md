@@ -189,6 +189,8 @@ docs/                    документація
 | `OBRIYM_WAREHOUSE_ID` | сервер | Обов’язковий ID складу ITALINO; обмежує товари вітрини |
 | `NEXT_PUBLIC_SITE_URL` | клієнт+сервер | Канонічний URL сайту для metadata, OG, sitemap |
 | `CRM_WEBHOOK_SECRET` | сервер | (план) підпис webhook-ів CRM для `revalidateTag` |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` | клієнт | Тег Google Ads `AW-…`; вшивається під час `next build` |
+| `NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL` | клієнт | Мітка конверсії «Покупка»; вшивається під час `next build` |
 
 Шаблон — `.env.example`. Реальні значення — тільки в `.env.local` (в `.gitignore`).
 
@@ -208,6 +210,11 @@ docs/                    документація
   якщо інструмент справді підключено (`Clarity.event()` без скрипта падає,
   `sendGAEvent()` пише попередження). Зараз: `add_to_cart` (з товаром і ціною,
   рекомендована подія GA4), `checkout_submit`, `order_created` (із сумою).
+- Google Ads працює через той самий gtag.js, контейнер GTM не потрібен. На
+  сторінці оплаченого замовлення `trackPurchaseOnce()` раз на замовлення шле GA4
+  `purchase` і конверсію Google Ads із сумою товарів (без Нової Пошти). Поки
+  `ad_storage` у `consent-defaults.ts` вимкнено, конверсії йдуть без cookie й не
+  прив'язуються до кліку по оголошенню.
 - Форма оформлення й картка статусу замовлення мають `data-clarity-mask="True"`.
   Нова форма з персональними даними — теж під маску.
 - Використання обох інструментів розкрито в політиці конфіденційності з

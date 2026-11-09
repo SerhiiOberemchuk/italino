@@ -7,6 +7,7 @@ import { getCapabilities, getLiveProductBySku } from "@/lib/crm/catalog";
 import { crmPost, CrmError } from "@/lib/crm/client";
 import { getOrCreatePaymentLink, getStoreOrderStatus } from "@/lib/crm/orders";
 import type { CrmOrderIntakeResponse, CrmProduct } from "@/lib/crm/types";
+import { parseAttributionInput } from "@/lib/attribution";
 import { clientKeyFromHeaders, allowRequest } from "@/lib/rate-limit";
 import { qualifiesForFreeShipping, formatThreshold } from "@/lib/shipping/free-shipping";
 import { shippingMethod } from "@/lib/shipping/methods";
@@ -272,10 +273,14 @@ export async function submitCheckout(
       discount: 0,
     }));
 
+    // Блок лише коли є що сказати: порожні поля CRM колись відхиляла, а мітка не варта замовлення.
+    const attribution = parseAttributionInput(text(formData.get("attribution"), 8_000));
+
     let order: CrmOrderIntakeResponse;
     try {
       order = await crmPost<CrmOrderIntakeResponse>("orders", {
         externalId: orderId,
+        ...(attribution ? { attribution } : {}),
         stockCheck: "strict",
         currency: "UAH",
         items: lines,

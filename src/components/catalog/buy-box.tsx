@@ -32,7 +32,8 @@ export function BuyBox() {
     trackEvent("add_to_cart", {
       currency: selected.currency,
       value: selected.price,
-      items: [{ item_id: selected.sku, item_name: selected.name, price: selected.price, quantity: 1 }],
+      // Google Merchant отримує id товару CRM (не артикул): події мають збігатися з фідом.
+      items: [{ item_id: selected.id, item_name: selected.name, price: selected.price, quantity: 1 }],
     });
     const key = selected.productGroupId ?? selected.id;
     addCartItem({
