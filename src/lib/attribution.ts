@@ -2,7 +2,8 @@
  * Рекламна атрибуція: що сайт запам'ятовує з адреси першого заходу й що віддає
  * CRM разом із замовленням. Контракт блоку `attribution` на POST /api/v1/orders
  * (orderAttributionSchema у CRM) і список параметрів узято з CRM
- * (`ATTRIBUTION_QUERY_PARAMS`), щоб сайт і CRM не розходилися.
+ * (`ATTRIBUTION_QUERY_PARAMS`), щоб сайт і CRM не розходилися. Понад цей список
+ * сайт читає лише `gbraid` і `wbraid` (див. CLICK_ID_PARAMS).
  *
  * Список параметрів фіксований свідомо: адреса може нести токен чи e-mail, і
  * зберігати її цілком не можна.
@@ -14,7 +15,11 @@ export const ATTRIBUTION_LAST_STORAGE_KEY = "obriym_attr_last";
 export const ATTRIBUTION_TTL_MS = 30 * 86_400_000;
 
 const UTM_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
-const CLICK_ID_PARAMS = ["gclid", "fbclid", "oppref"] as const;
+/*
+ * На частині кліків з iOS Google ставить `gbraid` або `wbraid` замість `gclid`.
+ * У замовленні одне поле для мітки кліку, тож порядок тут — це пріоритет.
+ */
+const CLICK_ID_PARAMS = ["gclid", "gbraid", "wbraid", "fbclid", "oppref"] as const;
 export const ATTRIBUTION_QUERY_PARAMS: readonly string[] = [...UTM_PARAMS, ...CLICK_ID_PARAMS];
 
 const UTM_VALUE_MAX = 255;

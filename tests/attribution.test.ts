@@ -25,6 +25,10 @@ describe("attribution capture", () => {
     expect(readTaggedParams("?token=secret")).toBeNull();
   });
 
+  it("captures the iOS click identifiers", () => {
+    expect(readTaggedParams("?gbraid=b&wbraid=w")).toEqual({ gbraid: "b", wbraid: "w" });
+  });
+
   it("keeps the first tagged visit for 30 days and updates the last touch", () => {
     const storage = memoryStorage();
     captureAttribution("?utm_source=google&gclid=one", storage, 1_000);
@@ -57,6 +61,13 @@ describe("attribution parsing for the CRM", () => {
     expect(result.clickId).toHaveLength(512);
     expect(result.clickIdParam).toBe("gclid");
     expect(Object.values(result).some((value) => value === null || value === "")).toBe(false);
+  });
+
+  it("sends gbraid and wbraid as the click id and prefers gclid when several are present", () => {
+    const parse = (v: Record<string, string>) => parseAttributionInput(JSON.stringify({ first: { t: 1, v } }));
+    expect(parse({ gbraid: "b" })).toEqual({ clickId: "b", clickIdParam: "gbraid" });
+    expect(parse({ wbraid: "w" })).toEqual({ clickId: "w", clickIdParam: "wbraid" });
+    expect(parse({ wbraid: "w", gbraid: "b", gclid: "g" })).toEqual({ clickId: "g", clickIdParam: "gclid" });
   });
 
   it("sends a last touch only when it differs from the first", () => {
